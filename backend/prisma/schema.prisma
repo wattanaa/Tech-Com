@@ -1,0 +1,752 @@
+// ════════════════════════════════════════════════════════════════
+//  PRISMA SCHEMA — PHASE 2 (ครบทุกตาราง)
+//  ระบบเว็บไซต์สารสนเทศ แผนกวิชาเทคโนโลยีคอมพิวเตอร์ วิทยาลัยเทคนิคร้อยเอ็ด
+//
+//  กติกาที่ใช้ทั้ง schema:
+//   · ทุกตารางมี id / createdAt / updatedAt
+//   · ตารางเนื้อหามี createdById / updatedById / deletedAt (soft delete)
+//   · createdById / updatedById เก็บเป็น String ไม่ผูก relation
+//     เพื่อไม่ให้ User มี back-relation รกจนอ่านไม่ออก — ตรวจความถูกต้องที่ service
+//   · onDelete: Restrict  = มีของอ้างอยู่ ห้ามลบ
+//     onDelete: SetNull   = ลบได้ ตัวที่อ้างอยู่กลายเป็นค่าว่าง
+//     onDelete: Cascade   = ลบแม่แล้วลูกหายตาม (ใช้เฉพาะตารางเชื่อม)
+// ════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═════════════════════════════  ENUM  ═════════════════════════════
+
+enum RoleName {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+enum ContentStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+/// ปวช. = ประกาศนียบัตรวิชาชีพ · ปวส. = ประกาศนียบัตรวิชาชีพชั้นสูง
+enum ProgramLevel {
+  POR_WOR_CHOR
+  POR_WOR_SOR
+}
+
+enum TeacherType {
+  HEAD
+  TEACHER
+  STAFF
+}
+
+enum CategoryType {
+  NEWS
+  ACTIVITY
+  PROJECT
+}
+
+enum NavLocation {
+  HEADER
+  FOOTER
+}
+
+enum SectionType {
+  HERO
+  STATISTICS
+  ABOUT
+  PROGRAMS
+  COURSES
+  TEACHERS
+  PROJECTS
+  ACTIVITIES
+  NEWS
+  GALLERY
+  FACILITIES
+  CONTACT
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  PUBLISH
+  UNPUBLISH
+  RESTORE
+}
+
+enum NotificationType {
+  NEWS_CREATED
+  NEWS_REVIEW
+  NEWS_PUBLISHED
+  CONTACT_MESSAGE
+  MEDIA_UPLOAD
+  USER_LOGIN
+  SECURITY_EVENT
+}
+
+enum BackupType {
+  DATABASE
+  MEDIA
+  FULL
+}
+
+enum BackupStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+// ═══════════════════════════  AUTH / RBAC  ═══════════════════════════
+
+model Role {
+  id          String           @id @default(cuid())
+  name        RoleName         @unique
+  label       String
+  description String?
+  /// ยิ่งมากยิ่งมีสิทธิ์สูง: EDITOR=10 ADMIN=50 SUPER_ADMIN=100
+  level       Int
+  users       User[]
+  permissions RolePermission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("roles")
+}
+
+model Permission {
+  id    String           @id @default(cuid())
+  /// รูปแบบ "<group>:<action>" เช่น "news:create"
+  key   String           @unique
+  group String
+  label String
+  roles RolePermission[]
+
+  @@index([group])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  name             String
+  phone            String?
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+
+  roleId   String
+  role     Role    @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  avatarId String?
+  avatar   Media?  @relation("UserAvatar", fields: [avatarId], references: [id], onDelete: SetNull)
+
+  teacherProfile Teacher?
+  authoredNews   News[]           @relation("NewsAuthor")
+  uploads        Media[]          @relation("MediaUploader")
+  auditLogs      AuditLog[]
+  notifications  Notification[]
+  versions       ContentVersion[]
+  backups        Backup[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([roleId])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+// ═════════════════════════════  MEDIA  ═════════════════════════════
+
+model Media {
+  id           String  @id @default(cuid())
+  /// ชื่อไฟล์บนดิสก์ (UUID) — ไม่ใช้ชื่อเดิมของผู้ใช้ เพื่อกัน path traversal
+  filename     String  @unique
+  originalName String
+  mimeType     String
+  /// หน่วยเป็น byte
+  size         Int
+  width        Int?
+  height       Int?
+  url          String
+  thumbnailUrl String?
+  alt          String?
+  folder       String  @default("general")
+
+  uploadedById String?
+  uploadedBy   User?   @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  // back-relation ของทุกตารางที่อ้างถึงรูป
+  avatarOf       User[]         @relation("UserAvatar")
+  teacherPhotos  Teacher[]      @relation("TeacherPhoto")
+  studentPhotos  Student[]      @relation("StudentPhoto")
+  programImages  Program[]      @relation("ProgramImage")
+  courseImages   Course[]       @relation("CourseImage")
+  newsCovers     News[]         @relation("NewsCover")
+  activityCovers Activity[]     @relation("ActivityCover")
+  projectCovers  Project[]      @relation("ProjectCover")
+  facilityCovers Facility[]     @relation("FacilityCover")
+  albumCovers    Album[]        @relation("AlbumCover")
+  galleryImages  GalleryImage[] @relation("GalleryMedia")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([folder, createdAt])
+  @@index([deletedAt])
+  @@map("media")
+}
+
+// ═══════════════════════════  บุคลากร  ═══════════════════════════
+
+model Teacher {
+  id           String      @id @default(cuid())
+  prefix       String
+  firstName    String
+  lastName     String
+  /// ตำแหน่งในแผนก เช่น "หัวหน้าแผนกวิชา"
+  position     String
+  /// วิทยฐานะ เช่น "ครูชำนาญการพิเศษ"
+  academicRank String?
+  type         TeacherType @default(TEACHER)
+  specialties  String[]
+  bio          String?
+  email        String?
+  phone        String?
+  facebook     String?
+  line         String?
+  /// ลำดับการแสดงผลบนหน้าเว็บ
+  order        Int         @default(0)
+  isVisible    Boolean     @default(true)
+
+  photoId String?
+  photo   Media?  @relation("TeacherPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  /// ผูกกับบัญชีผู้ใช้ได้ถ้าครูท่านนั้นเป็นผู้ดูแลเว็บไซต์ด้วย
+  userId  String? @unique
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  courses         CourseTeacher[]
+  advisedProjects Project[]       @relation("ProjectAdvisor")
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([type, order])
+  @@index([deletedAt])
+  @@map("teachers")
+}
+
+model Student {
+  id          String  @id @default(cuid())
+  studentCode String  @unique
+  prefix      String
+  firstName   String
+  lastName    String
+  /// ชั้นปี เช่น "ปวช.3" "ปวส.2"
+  level       String
+  classRoom   String?
+  /// ปีการศึกษาที่เข้าศึกษา (พ.ศ.)
+  year        Int
+  isVisible   Boolean @default(true)
+
+  programId String?
+  program   Program? @relation(fields: [programId], references: [id], onDelete: SetNull)
+  photoId   String?
+  photo     Media?   @relation("StudentPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+
+  projects ProjectMember[]
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([programId])
+  @@index([year, level])
+  @@index([deletedAt])
+  @@map("students")
+}
+
+// ═══════════════════════════  หลักสูตร  ═══════════════════════════
+
+model Program {
+  id          String       @id @default(cuid())
+  /// รหัสหลักสูตรตามโครงสร้าง สอศ.
+  code        String       @unique
+  name        String
+  nameEn      String?
+  level       ProgramLevel
+  /// ระยะเวลาเรียน เช่น "3 ปี"
+  duration    String
+  description String
+  skills      String[]
+  order       Int          @default(0)
+  isVisible   Boolean      @default(true)
+
+  imageId String?
+  image   Media?  @relation("ProgramImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+  courses  Course[]
+  students Student[]
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([level, order])
+  @@index([deletedAt])
+  @@map("programs")
+}
+
+model Course {
+  id            String  @id @default(cuid())
+  /// รหัสวิชาตามหลักสูตร สอศ. เช่น 30901-2003
+  code          String  @unique
+  name          String
+  nameEn        String?
+  credits       Int
+  /// ชั่วโมงเรียนรวมต่อสัปดาห์
+  hours         Int
+  theoryHours   Int     @default(0)
+  practiceHours Int     @default(0)
+  description   String
+  /// ภาคเรียนที่เปิดสอน เช่น "1/2569"
+  term          String?
+  isVisible     Boolean @default(true)
+
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Restrict)
+  imageId   String?
+  image     Media?  @relation("CourseImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+  teachers CourseTeacher[]
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([programId])
+  @@index([deletedAt])
+  @@map("courses")
+}
+
+model CourseTeacher {
+  courseId  String
+  teacherId String
+  course    Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, teacherId])
+  @@map("course_teachers")
+}
+
+// ═══════════════════  ข่าว · กิจกรรม · ผลงาน  ═══════════════════
+
+model Category {
+  id    String       @id @default(cuid())
+  name  String
+  slug  String
+  type  CategoryType
+  /// สีประจำหมวดสำหรับแสดงป้ายบนหน้าเว็บ (hex)
+  color String       @default("#007AFF")
+  order Int          @default(0)
+
+  news       News[]
+  activities Activity[]
+  projects   Project[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, type])
+  @@index([type, order])
+  @@map("categories")
+}
+
+model News {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  excerpt     String
+  content     String
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  views       Int           @default(0)
+  isPinned    Boolean       @default(false)
+
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  authorId     String
+  author       User      @relation("NewsAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  coverImageId String?
+  coverImage   Media?    @relation("NewsCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([deletedAt])
+  @@map("news")
+}
+
+model Activity {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String
+  content     String?
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  status      ContentStatus @default(DRAFT)
+  views       Int           @default(0)
+
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  coverImageId String?
+  coverImage   Media?    @relation("ActivityCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([status, startDate])
+  @@index([categoryId])
+  @@index([deletedAt])
+  @@map("activities")
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  description  String
+  /// ปีการศึกษาที่ทำโครงงาน (พ.ศ.)
+  year         Int
+  technologies String[]
+  demoUrl      String?
+  githubUrl    String?
+  /// รางวัลที่ได้รับ ถ้ามี
+  award        String?
+  status       ContentStatus @default(DRAFT)
+
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  advisorId    String?
+  advisor      Teacher?  @relation("ProjectAdvisor", fields: [advisorId], references: [id], onDelete: SetNull)
+  coverImageId String?
+  coverImage   Media?    @relation("ProjectCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  members ProjectMember[]
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([year, categoryId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("projects")
+}
+
+model ProjectMember {
+  projectId String
+  studentId String
+  /// บทบาทในทีม เช่น "หัวหน้าทีม"
+  role      String?
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, studentId])
+  @@map("project_members")
+}
+
+// ═══════════════════  ห้องปฏิบัติการ · คลังภาพ  ═══════════════════
+
+model Facility {
+  id            String  @id @default(cuid())
+  name          String
+  slug          String  @unique
+  description   String
+  /// จำนวนเครื่องคอมพิวเตอร์ในห้อง
+  computerCount Int     @default(0)
+  software      String[]
+  equipment     String[]
+  /// ที่ตั้งห้อง เช่น "อาคาร 4 ชั้น 2 ห้อง 421"
+  location      String?
+  order         Int     @default(0)
+  isVisible     Boolean @default(true)
+
+  coverImageId String?
+  coverImage   Media?  @relation("FacilityCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([order])
+  @@index([deletedAt])
+  @@map("facilities")
+}
+
+model Album {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  eventDate   DateTime?
+  isPublished Boolean   @default(false)
+  order       Int       @default(0)
+
+  coverImageId String?
+  coverImage   Media?  @relation("AlbumCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  images GalleryImage[]
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([isPublished, eventDate])
+  @@index([deletedAt])
+  @@map("albums")
+}
+
+model GalleryImage {
+  id      String  @id @default(cuid())
+  caption String?
+  /// ลำดับภาพในอัลบั้ม — เปลี่ยนได้ด้วยการลากใน Admin
+  order   Int     @default(0)
+
+  albumId String
+  album   Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  mediaId String
+  media   Media  @relation("GalleryMedia", fields: [mediaId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([albumId, mediaId])
+  @@index([albumId, order])
+  @@map("gallery_images")
+}
+
+// ═══════════════════════  การตั้งค่าเว็บไซต์  ═══════════════════════
+
+model HomepageSection {
+  id        String      @id @default(cuid())
+  /// ชนิดซ้ำได้ เพื่อให้ทำสำเนา section แล้วตั้งค่าคนละแบบได้
+  /// เช่น แถวข่าว 2 แถว กรองคนละหมวด
+  type      SectionType
+  title     String?
+  subtitle  String?
+  order     Int
+  isVisible Boolean     @default(true)
+  /// ค่าตั้งของแต่ละ section — validate ด้วย Zod discriminated union ตาม type ทุกครั้งที่บันทึก
+  config    Json        @default("{}")
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([order])
+  @@index([type])
+  @@map("homepage_sections")
+}
+
+model NavigationItem {
+  id        String      @id @default(cuid())
+  label     String
+  href      String
+  icon      String?
+  order     Int
+  isVisible Boolean     @default(true)
+  target    String      @default("_self")
+  location  NavLocation @default(HEADER)
+
+  parentId String?
+  parent   NavigationItem?  @relation("NavChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children NavigationItem[] @relation("NavChildren")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([location, order])
+  @@map("navigation_items")
+}
+
+model SiteSetting {
+  id    String @id @default(cuid())
+  /// "general" | "contact" | "social" | "footer" | "about"
+  key   String @unique
+  group String @default("general")
+  value Json
+
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([group])
+  @@map("site_settings")
+}
+
+model SeoSetting {
+  id          String   @id @default(cuid())
+  /// เส้นทางของหน้า เช่น "/" "/news"
+  path        String   @unique
+  title       String
+  description String?
+  keywords    String[]
+  ogImageId   String?
+  canonical   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("seo_settings")
+}
+
+// ═════════════════════════════  ระบบ  ═════════════════════════════
+
+model ContactMessage {
+  id        String    @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  isRead    Boolean   @default(false)
+  repliedAt DateTime?
+  ipAddress String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([isRead, createdAt])
+  @@map("contact_messages")
+}
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type    NotificationType
+  title   String
+  message String?
+  link    String?
+  isRead  Boolean          @default(false)
+  readAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id       String      @id @default(cuid())
+  userId   String?
+  user     User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action   AuditAction
+  /// ชื่อ model ที่ถูกกระทำ เช่น "News"
+  entity   String
+  entityId String?
+  /// { before: {...}, after: {...} }
+  changes  Json?
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model ContentVersion {
+  id       String  @id @default(cuid())
+  entity   String
+  entityId String
+  version  Int
+  /// ภาพรวมของข้อมูลทั้งก้อน ณ เวอร์ชันนั้น ใช้กู้คืนได้
+  snapshot Json
+  note     String?
+
+  changedById String?
+  changedBy   User?   @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@unique([entity, entityId, version])
+  @@index([entity, entityId])
+  @@map("content_versions")
+}
+
+model Backup {
+  id       String       @id @default(cuid())
+  filename String
+  path     String
+  type     BackupType
+  status   BackupStatus @default(PENDING)
+  size     BigInt       @default(0)
+  note     String?
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([createdAt])
+  @@map("backups")
+}

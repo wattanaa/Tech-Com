@@ -1,0 +1,1320 @@
+<title>TCOM Interface Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* ─────────────────────────────  DESIGN TOKENS  ───────────────────────────── */
+:root{
+  --blue-400:#0A84FF;
+  --blue-500:#007AFF;
+  --blue-700:#0057B8;
+  --cyan:#1FB6E0;
+
+  --bg:#EEF4FE;
+  --bg-2:#F5F9FF;
+  --surface:#FFFFFF;
+  --glass:rgba(255,255,255,.66);
+  --glass-2:rgba(255,255,255,.86);
+  --border:rgba(12,62,124,.13);
+  --border-2:rgba(12,62,124,.22);
+
+  --text:#0A1A31;
+  --text-2:#42557A;
+  --text-3:#7789A8;
+
+  --good:#0E9C63;
+  --good-bg:rgba(14,156,99,.12);
+  --warn:#C77A0C;
+  --warn-bg:rgba(199,122,12,.13);
+  --crit:#D8394A;
+  --crit-bg:rgba(216,57,74,.12);
+  --info-bg:rgba(0,122,255,.11);
+
+  --glow:rgba(10,132,255,.28);
+  --sh-sm:0 1px 2px rgba(10,40,90,.06), 0 2px 8px rgba(10,40,90,.05);
+  --sh-md:0 4px 12px rgba(10,40,90,.08), 0 16px 40px rgba(10,40,90,.07);
+  --sh-lg:0 12px 28px rgba(10,40,90,.12), 0 40px 80px rgba(10,40,90,.10);
+
+  --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+  --blur:18px;
+
+  --f-display:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+  --f-body:"Noto Sans Thai","IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#040A16; --bg-2:#07101F; --surface:#0C1728;
+    --glass:rgba(17,33,58,.58); --glass-2:rgba(17,33,58,.82);
+    --border:rgba(125,180,255,.14); --border-2:rgba(125,180,255,.26);
+    --text:#E9F1FF; --text-2:#9EB3D6; --text-3:#6C82A8;
+    --good-bg:rgba(14,200,124,.15); --warn-bg:rgba(230,160,50,.16);
+    --crit-bg:rgba(255,90,110,.15); --info-bg:rgba(10,132,255,.18);
+    --good:#25C98A; --warn:#E8A93C; --crit:#FF6B7E;
+    --glow:rgba(10,132,255,.42);
+    --sh-sm:0 1px 2px rgba(0,0,0,.4);
+    --sh-md:0 4px 14px rgba(0,0,0,.45), 0 18px 44px rgba(0,0,0,.35);
+    --sh-lg:0 14px 34px rgba(0,0,0,.55), 0 44px 90px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#040A16; --bg-2:#07101F; --surface:#0C1728;
+  --glass:rgba(17,33,58,.58); --glass-2:rgba(17,33,58,.82);
+  --border:rgba(125,180,255,.14); --border-2:rgba(125,180,255,.26);
+  --text:#E9F1FF; --text-2:#9EB3D6; --text-3:#6C82A8;
+  --good-bg:rgba(14,200,124,.15); --warn-bg:rgba(230,160,50,.16);
+  --crit-bg:rgba(255,90,110,.15); --info-bg:rgba(10,132,255,.18);
+  --good:#25C98A; --warn:#E8A93C; --crit:#FF6B7E;
+  --glow:rgba(10,132,255,.42);
+  --sh-sm:0 1px 2px rgba(0,0,0,.4);
+  --sh-md:0 4px 14px rgba(0,0,0,.45), 0 18px 44px rgba(0,0,0,.35);
+  --sh-lg:0 14px 34px rgba(0,0,0,.55), 0 44px 90px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:var(--f-body); color:var(--text);
+  background:var(--bg);
+  background-image:
+    radial-gradient(1100px 620px at 12% -8%, rgba(10,132,255,.16), transparent 62%),
+    radial-gradient(900px 520px at 92% 4%, rgba(31,182,224,.13), transparent 60%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+  font-size:15px; line-height:1.65;
+}
+h1,h2,h3,h4{font-family:var(--f-display); text-wrap:balance; margin:0; line-height:1.3}
+p{margin:0}
+svg{display:block}
+.mono{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+
+/* ─────────────────────────────  PAGE SHELL  ───────────────────────────── */
+.wrap{max-width:1240px; margin:0 auto; padding-inline:16px; padding-block:26px 64px}
+
+.masthead{display:flex; align-items:flex-start; gap:18px; flex-wrap:wrap; justify-content:space-between; margin-bottom:22px}
+.brandline{display:flex; align-items:center; gap:13px}
+.brandmark{
+  width:46px; height:46px; border-radius:13px; flex:none;
+  background:linear-gradient(140deg,var(--blue-400),var(--blue-700));
+  box-shadow:0 6px 18px var(--glow);
+  display:grid; place-items:center; color:#fff;
+}
+.eyebrow{
+  font-family:var(--f-mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--blue-500); margin-bottom:2px;
+}
+.masthead h1{font-size:clamp(19px,2.6vw,25px); font-weight:700; letter-spacing:-.01em}
+.masthead .sub{font-size:13px; color:var(--text-2)}
+
+.themebtn{
+  display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+  font-family:var(--f-body); font-size:13px; color:var(--text-2);
+  padding:9px 15px; border-radius:999px; border:1px solid var(--border);
+  background:var(--glass); backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+}
+.themebtn:hover{border-color:var(--border-2); color:var(--text)}
+
+/* tabs */
+.tabs{
+  display:flex; gap:4px; padding:5px; margin-bottom:18px; overflow-x:auto;
+  border:1px solid var(--border); border-radius:var(--r-lg);
+  background:var(--glass); backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+  box-shadow:var(--sh-sm); scrollbar-width:thin;
+}
+.tab{
+  flex:1 1 auto; white-space:nowrap; cursor:pointer; border:0; background:transparent;
+  font-family:var(--f-display); font-size:13.5px; font-weight:600; color:var(--text-2);
+  padding:10px 16px; border-radius:15px; display:flex; align-items:center; gap:8px; justify-content:center;
+  transition:background .18s, color .18s;
+}
+.tab:hover{color:var(--text); background:var(--info-bg)}
+.tab[aria-selected="true"]{
+  color:#fff; background:linear-gradient(135deg,var(--blue-400),var(--blue-700));
+  box-shadow:0 4px 14px var(--glow);
+}
+.tab .n{font-family:var(--f-mono); font-size:10.5px; opacity:.7}
+.tab:focus-visible,.themebtn:focus-visible{outline:2px solid var(--blue-500); outline-offset:2px}
+
+/* browser frame */
+.frame{
+  border:1px solid var(--border); border-radius:var(--r-xl); overflow:hidden;
+  background:var(--surface); box-shadow:var(--sh-lg);
+}
+.chrome{
+  display:flex; align-items:center; gap:12px; padding:11px 16px;
+  border-bottom:1px solid var(--border); background:var(--glass-2);
+  backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+}
+.dots{display:flex; gap:6px}
+.dots i{width:10px; height:10px; border-radius:50%; background:var(--border-2)}
+.dots i:first-child{background:#FF5F57} .dots i:nth-child(2){background:#FEBC2E} .dots i:nth-child(3){background:#28C840}
+.url{
+  flex:1; font-family:var(--f-mono); font-size:11.5px; color:var(--text-3);
+  background:var(--bg-2); border:1px solid var(--border); border-radius:999px;
+  padding:5px 13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.screen{position:relative; overflow:hidden}
+.viewport{overflow-x:auto}
+.viewport > .inner{min-width:900px}
+@media (min-width:980px){ .viewport > .inner{min-width:0} }
+
+.note{
+  margin-top:14px; font-size:13px; color:var(--text-2);
+  display:flex; gap:10px; align-items:flex-start;
+  padding:13px 16px; border-radius:var(--r-md);
+  border:1px solid var(--border); border-left:3px solid var(--blue-500);
+  background:var(--glass); backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+}
+.note b{font-family:var(--f-display); color:var(--text); font-weight:600}
+
+/* ═══════════════════════  SCREEN 1 · PUBLIC HOMEPAGE  ═══════════════════════ */
+.site{
+  background:var(--bg-2); position:relative;
+  background-image:
+    radial-gradient(760px 420px at 78% -10%, var(--glow), transparent 64%),
+    radial-gradient(620px 360px at 4% 12%, rgba(31,182,224,.16), transparent 62%);
+}
+.grid-bg{
+  position:absolute; inset:0; pointer-events:none;
+  background-image:linear-gradient(var(--border) 1px, transparent 1px),
+                   linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size:46px 46px;
+  mask-image:linear-gradient(to bottom, #000 0%, transparent 72%);
+  -webkit-mask-image:linear-gradient(to bottom, #000 0%, transparent 72%);
+}
+.navbar{
+  position:relative; z-index:3; display:flex; align-items:center; gap:22px;
+  padding:13px 26px; margin:14px; border-radius:var(--r-lg);
+  border:1px solid var(--border); background:var(--glass);
+  backdrop-filter:blur(var(--blur)) saturate(1.5); -webkit-backdrop-filter:blur(var(--blur)) saturate(1.5);
+  box-shadow:var(--sh-sm);
+}
+.nav-logo{display:flex; align-items:center; gap:10px; flex:none}
+.nav-logo .mk{
+  width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:#fff;
+  background:linear-gradient(140deg,var(--blue-400),var(--blue-700)); box-shadow:0 4px 12px var(--glow);
+}
+.nav-logo .tx strong{display:block; font-family:var(--f-display); font-size:13px; font-weight:700; line-height:1.25}
+.nav-logo .tx span{display:block; font-size:10.5px; color:var(--text-3); line-height:1.3}
+.nav-menu{display:flex; gap:3px; margin-inline:auto; flex-wrap:wrap}
+.nav-menu a{
+  font-size:13px; color:var(--text-2); text-decoration:none; padding:7px 12px; border-radius:9px;
+}
+.nav-menu a:hover{color:var(--blue-500); background:var(--info-bg)}
+.nav-menu a.on{color:var(--blue-500); background:var(--info-bg); font-weight:600}
+.nav-act{display:flex; gap:8px; align-items:center; flex:none}
+.icon-btn{
+  width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
+  border:1px solid var(--border); background:var(--surface); color:var(--text-2); cursor:pointer;
+}
+.icon-btn:hover{color:var(--blue-500); border-color:var(--border-2)}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+  font-family:var(--f-display); font-weight:600; font-size:13.5px; padding:11px 20px;
+  border-radius:12px; border:1px solid transparent; text-decoration:none; white-space:nowrap;
+}
+.btn-primary{background:linear-gradient(135deg,var(--blue-400),var(--blue-700)); color:#fff; box-shadow:0 6px 18px var(--glow)}
+.btn-primary:hover{box-shadow:0 10px 26px var(--glow)}
+.btn-ghost{background:var(--glass); border-color:var(--border-2); color:var(--text); backdrop-filter:blur(var(--blur))}
+.btn-sm{padding:8px 14px; font-size:12.5px; border-radius:10px}
+
+.hero{position:relative; z-index:2; display:grid; grid-template-columns:1.08fr .92fr; gap:34px; align-items:center; padding:46px 40px 40px}
+.badge{
+  display:inline-flex; align-items:center; gap:8px; font-size:11.5px; font-weight:600;
+  color:var(--blue-500); background:var(--info-bg); border:1px solid var(--border-2);
+  padding:6px 13px; border-radius:999px; margin-bottom:16px;
+}
+.badge .pulse{width:6px; height:6px; border-radius:50%; background:var(--blue-500); animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1; transform:scale(1)} 50%{opacity:.35; transform:scale(.7)}}
+.hero h2{font-size:clamp(28px,4vw,42px); font-weight:700; letter-spacing:-.02em; line-height:1.24}
+.hero h2 .grad{
+  background:linear-gradient(110deg,var(--blue-400),var(--cyan) 55%,var(--blue-700));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  background-size:200% auto; animation:shift 7s linear infinite;
+}
+@keyframes shift{to{background-position:200% center}}
+.hero p.lead{margin-top:14px; font-size:14.5px; color:var(--text-2); max-width:44ch}
+.hero-cta{display:flex; gap:11px; margin-top:24px; flex-wrap:wrap}
+.hero-trust{display:flex; gap:20px; margin-top:26px; padding-top:20px; border-top:1px solid var(--border); flex-wrap:wrap}
+.hero-trust div strong{display:block; font-family:var(--f-display); font-size:17px; font-weight:700}
+.hero-trust div span{font-size:11.5px; color:var(--text-3)}
+
+.hero-visual{position:relative; height:308px}
+.glass-card{
+  position:absolute; border:1px solid var(--border-2); border-radius:var(--r-lg);
+  background:var(--glass); backdrop-filter:blur(var(--blur)) saturate(1.6); -webkit-backdrop-filter:blur(var(--blur)) saturate(1.6);
+  box-shadow:var(--sh-md); padding:16px;
+}
+.gc-main{inset:14px 16px 46px 40px; padding:18px; animation:float 7s ease-in-out infinite}
+.gc-a{width:178px; left:0; bottom:8px; animation:float 6s ease-in-out .6s infinite}
+.gc-b{width:152px; right:4px; top:0; animation:float 8s ease-in-out .3s infinite}
+@keyframes float{0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)}}
+.gc-head{display:flex; align-items:center; gap:9px; margin-bottom:13px}
+.gc-head .ic{width:30px; height:30px; border-radius:9px; display:grid; place-items:center; color:#fff;
+  background:linear-gradient(140deg,var(--blue-400),var(--blue-700))}
+.gc-head b{font-family:var(--f-display); font-size:12.5px; font-weight:600}
+.gc-head small{display:block; font-size:10px; color:var(--text-3)}
+.bars{display:flex; align-items:flex-end; gap:7px; height:88px; margin-top:6px}
+.bars i{flex:1; border-radius:5px 5px 2px 2px; background:linear-gradient(180deg,var(--blue-400),rgba(10,132,255,.22))}
+.chiprow{display:flex; gap:5px; flex-wrap:wrap; margin-top:12px}
+.chip{font-size:10px; font-family:var(--f-mono); padding:3px 8px; border-radius:6px;
+  background:var(--info-bg); color:var(--blue-500); border:1px solid var(--border)}
+.spark{width:100%; height:42px}
+.kpi{font-family:var(--f-display); font-size:23px; font-weight:700; letter-spacing:-.02em}
+.kpi small{font-size:11px; font-weight:500; color:var(--good); margin-left:6px}
+
+.stats{
+  position:relative; z-index:2; margin:0 26px; padding:22px;
+  display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+  border:1px solid var(--border); border-radius:var(--r-xl);
+  background:var(--glass); backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+  box-shadow:var(--sh-md);
+}
+.stat{text-align:center; padding:8px}
+.stat .ic{width:38px; height:38px; margin:0 auto 9px; border-radius:11px; display:grid; place-items:center;
+  color:var(--blue-500); background:var(--info-bg); border:1px solid var(--border)}
+.stat .num{font-family:var(--f-display); font-size:29px; font-weight:700; letter-spacing:-.02em; line-height:1.15}
+.stat .num em{font-style:normal; font-size:17px; color:var(--blue-500)}
+.stat .lb{font-size:12px; color:var(--text-2)}
+
+.sec{position:relative; z-index:2; padding:42px 40px}
+.sec-head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap}
+.sec-head .eyebrow{margin-bottom:5px}
+.sec-head h3{font-size:22px; font-weight:700; letter-spacing:-.01em}
+.sec-head p{font-size:13px; color:var(--text-2); margin-top:3px}
+.cards3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+.ncard{
+  border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden;
+  background:var(--glass); backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+  box-shadow:var(--sh-sm); transition:transform .25s, box-shadow .25s;
+}
+.ncard:hover{transform:translateY(-4px); box-shadow:var(--sh-md)}
+.ncard .thumb{height:124px; position:relative; display:grid; place-items:center; color:rgba(255,255,255,.9)}
+.ncard .thumb::after{content:""; position:absolute; inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px);
+  background-size:22px 22px}
+.t1{background:linear-gradient(140deg,#0A84FF,#0057B8)}
+.t2{background:linear-gradient(140deg,#1FB6E0,#0A84FF)}
+.t3{background:linear-gradient(140deg,#4C6FFF,#0A3E9E)}
+.ncard .body{padding:15px}
+.tagrow{display:flex; align-items:center; gap:8px; margin-bottom:9px}
+.tag{font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:6px; background:var(--info-bg); color:var(--blue-500)}
+.dt{font-family:var(--f-mono); font-size:10.5px; color:var(--text-3)}
+.ncard h4{font-size:14.5px; font-weight:600; line-height:1.45}
+.ncard p{font-size:12.5px; color:var(--text-2); margin-top:7px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.ncard .foot{display:flex; align-items:center; gap:6px; margin-top:12px; padding-top:11px; border-top:1px solid var(--border); font-size:11px; color:var(--text-3)}
+
+/* ═══════════════════════  ADMIN SHELL (SCREEN 2-4)  ═══════════════════════ */
+.admin{display:grid; grid-template-columns:218px 1fr; min-height:660px; background:var(--bg-2)}
+.side{
+  border-right:1px solid var(--border); padding:14px 11px;
+  background:var(--glass); backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+  display:flex; flex-direction:column; gap:3px;
+}
+.side-brand{display:flex; align-items:center; gap:9px; padding:7px 8px 14px; margin-bottom:6px; border-bottom:1px solid var(--border)}
+.side-brand .mk{width:31px; height:31px; border-radius:9px; display:grid; place-items:center; color:#fff;
+  background:linear-gradient(140deg,var(--blue-400),var(--blue-700)); box-shadow:0 4px 12px var(--glow)}
+.side-brand strong{font-family:var(--f-display); font-size:12.5px; font-weight:700; display:block; line-height:1.2}
+.side-brand span{font-size:9.5px; color:var(--text-3); font-family:var(--f-mono)}
+.side-lab{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--text-3); padding:12px 10px 5px}
+.side a{
+  display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px;
+  font-size:12.5px; color:var(--text-2); text-decoration:none; position:relative;
+}
+.side a:hover{background:var(--info-bg); color:var(--text)}
+.side a.on{background:linear-gradient(135deg,var(--blue-400),var(--blue-700)); color:#fff; font-weight:600; box-shadow:0 4px 12px var(--glow)}
+.side a .cnt{margin-left:auto; font-family:var(--f-mono); font-size:9.5px; padding:1px 6px; border-radius:5px;
+  background:var(--crit-bg); color:var(--crit)}
+.side a.on .cnt{background:rgba(255,255,255,.22); color:#fff}
+.side-foot{margin-top:auto; padding-top:12px; border-top:1px solid var(--border); display:flex; align-items:center; gap:9px}
+.avatar{width:30px; height:30px; border-radius:9px; flex:none; display:grid; place-items:center; color:#fff;
+  font-family:var(--f-display); font-size:11.5px; font-weight:600;
+  background:linear-gradient(140deg,var(--cyan),var(--blue-700))}
+.side-foot .tx b{display:block; font-family:var(--f-display); font-size:11.5px; font-weight:600; line-height:1.3}
+.side-foot .tx span{font-size:9.5px; color:var(--text-3)}
+
+.main{display:flex; flex-direction:column; min-width:0}
+.topbar{
+  display:flex; align-items:center; gap:13px; padding:12px 20px; border-bottom:1px solid var(--border);
+  background:var(--glass); backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+}
+.crumb{font-size:11.5px; color:var(--text-3); margin-bottom:1px}
+.topbar h3{font-family:var(--f-display); font-size:16px; font-weight:700; letter-spacing:-.01em}
+.searchbox{
+  margin-left:auto; display:flex; align-items:center; gap:8px; width:min(260px,34%);
+  border:1px solid var(--border); border-radius:10px; padding:7px 11px;
+  background:var(--surface); color:var(--text-3); font-size:12.5px;
+}
+.searchbox .k{margin-left:auto; font-family:var(--f-mono); font-size:9.5px; border:1px solid var(--border);
+  border-radius:4px; padding:0 5px; color:var(--text-3)}
+.bell{position:relative}
+.bell .dot{position:absolute; top:5px; right:6px; width:7px; height:7px; border-radius:50%;
+  background:var(--crit); border:1.5px solid var(--surface)}
+.content{padding:20px; display:flex; flex-direction:column; gap:16px}
+
+.card{
+  border:1px solid var(--border); border-radius:var(--r-lg); background:var(--glass);
+  backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur)); box-shadow:var(--sh-sm);
+}
+.card-h{display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border)}
+.card-h h4{font-size:13.5px; font-weight:600; flex:1}
+.card-h .lnk{font-size:11.5px; color:var(--blue-500); text-decoration:none}
+
+/* stat tiles */
+.tiles{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+.tile{padding:16px; border-radius:var(--r-lg); border:1px solid var(--border); background:var(--glass);
+  backdrop-filter:blur(var(--blur)); box-shadow:var(--sh-sm); position:relative; overflow:hidden}
+.tile::before{content:""; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,var(--blue-400),transparent)}
+.tile .top{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
+.tile .ic{width:32px; height:32px; border-radius:9px; display:grid; place-items:center; color:var(--blue-500); background:var(--info-bg)}
+.delta{font-family:var(--f-mono); font-size:10.5px; font-weight:500; padding:2px 7px; border-radius:6px;
+  display:inline-flex; align-items:center; gap:3px}
+.delta.up{background:var(--good-bg); color:var(--good)}
+.delta.flat{background:var(--info-bg); color:var(--blue-500)}
+.tile .val{font-family:var(--f-display); font-size:25px; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.2}
+.tile .lb{font-size:11.5px; color:var(--text-2)}
+
+.dash-grid{display:grid; grid-template-columns:1.62fr 1fr; gap:14px}
+.legend{display:flex; gap:14px; font-size:11px; color:var(--text-2); flex-wrap:wrap}
+.legend i{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:-1px}
+
+.feed{display:flex; flex-direction:column}
+.feed-it{display:flex; gap:11px; padding:11px 16px; border-bottom:1px solid var(--border)}
+.feed-it:last-child{border-bottom:0}
+.feed-it .ic{width:28px; height:28px; border-radius:8px; flex:none; display:grid; place-items:center}
+.ic-blue{background:var(--info-bg); color:var(--blue-500)}
+.ic-good{background:var(--good-bg); color:var(--good)}
+.ic-warn{background:var(--warn-bg); color:var(--warn)}
+.feed-it .tx{min-width:0; flex:1}
+.feed-it .tx b{display:block; font-family:var(--f-display); font-size:12.5px; font-weight:600; line-height:1.4}
+.feed-it .tx span{font-size:11px; color:var(--text-3)}
+.feed-it time{font-family:var(--f-mono); font-size:10px; color:var(--text-3); flex:none}
+
+.status-row{display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); font-size:12px}
+.status-row:last-child{border-bottom:0}
+.status-row .nm{flex:1; color:var(--text-2)}
+.status-row .vl{font-family:var(--f-mono); font-size:11px; color:var(--text)}
+.led{width:7px; height:7px; border-radius:50%; flex:none}
+.led-good{background:var(--good); box-shadow:0 0 0 3px var(--good-bg)}
+.led-warn{background:var(--warn); box-shadow:0 0 0 3px var(--warn-bg)}
+.meter{height:5px; border-radius:3px; background:var(--border); overflow:hidden; width:74px; flex:none}
+.meter i{display:block; height:100%; border-radius:3px; background:linear-gradient(90deg,var(--blue-400),var(--cyan))}
+
+/* toolbar + table */
+.toolbar{display:flex; align-items:center; gap:9px; flex-wrap:wrap; padding:13px 16px; border-bottom:1px solid var(--border)}
+.field{display:flex; align-items:center; gap:7px; border:1px solid var(--border); border-radius:10px;
+  padding:7px 11px; background:var(--surface); font-size:12.5px; color:var(--text-2)}
+.field.grow{flex:1; min-width:170px; color:var(--text-3)}
+.field.sel{cursor:pointer}
+.field.sel b{color:var(--text); font-weight:500}
+
+table{width:100%; border-collapse:collapse; font-size:12.5px}
+thead th{
+  text-align:left; font-family:var(--f-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--text-3); font-weight:500; padding:10px 14px; border-bottom:1px solid var(--border); white-space:nowrap;
+}
+tbody td{padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--info-bg)}
+.cell-title{display:flex; align-items:center; gap:11px; min-width:250px}
+.cell-title .th{width:44px; height:34px; border-radius:8px; flex:none; position:relative; overflow:hidden}
+.cell-title b{display:block; font-family:var(--f-display); font-size:12.5px; font-weight:600; line-height:1.4}
+.cell-title span{font-family:var(--f-mono); font-size:10px; color:var(--text-3)}
+.pin{display:inline-flex; align-items:center; gap:3px; font-size:9.5px; color:var(--warn);
+  background:var(--warn-bg); padding:1px 6px; border-radius:5px; margin-left:6px; vertical-align:1px}
+.pill{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; white-space:nowrap}
+.pill i{width:6px; height:6px; border-radius:50%; background:currentColor}
+.p-pub{background:var(--good-bg); color:var(--good)}
+.p-rev{background:var(--warn-bg); color:var(--warn)}
+.p-draft{background:var(--info-bg); color:var(--text-3)}
+.p-arch{background:var(--crit-bg); color:var(--crit)}
+.p-appr{background:var(--info-bg); color:var(--blue-500)}
+.who{display:flex; align-items:center; gap:7px}
+.who .av{width:22px; height:22px; border-radius:7px; flex:none; display:grid; place-items:center;
+  font-family:var(--f-display); font-size:9.5px; font-weight:600; color:#fff;
+  background:linear-gradient(140deg,var(--cyan),var(--blue-700))}
+.acts{display:flex; gap:5px; justify-content:flex-end}
+.act{width:27px; height:27px; border-radius:8px; border:1px solid var(--border); background:var(--surface);
+  color:var(--text-3); display:grid; place-items:center; cursor:pointer}
+.act:hover{color:var(--blue-500); border-color:var(--border-2)}
+.act.danger:hover{color:var(--crit)}
+.tfoot{display:flex; align-items:center; gap:10px; padding:12px 16px; border-top:1px solid var(--border); flex-wrap:wrap}
+.tfoot .info{font-size:11.5px; color:var(--text-3); margin-right:auto}
+.pg{display:flex; gap:4px}
+.pg button{min-width:29px; height:29px; border-radius:8px; border:1px solid var(--border); background:var(--surface);
+  font-family:var(--f-mono); font-size:11px; color:var(--text-2); cursor:pointer}
+.pg button.on{background:linear-gradient(135deg,var(--blue-400),var(--blue-700)); color:#fff; border-color:transparent}
+.pg button:hover:not(.on){border-color:var(--border-2); color:var(--text)}
+
+/* homepage builder */
+.build{display:grid; grid-template-columns:1fr 1.12fr; gap:14px; align-items:start}
+.seclist{display:flex; flex-direction:column; gap:7px; padding:12px}
+.secitem{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--r-md);
+  border:1px solid var(--border); background:var(--surface); box-shadow:var(--sh-sm);
+}
+.secitem .grip{color:var(--text-3); cursor:grab; flex:none}
+.secitem .ord{font-family:var(--f-mono); font-size:10px; color:var(--text-3); width:16px; flex:none}
+.secitem .tx{flex:1; min-width:0}
+.secitem .tx b{display:block; font-family:var(--f-display); font-size:12.5px; font-weight:600; line-height:1.35}
+.secitem .tx span{font-family:var(--f-mono); font-size:9.5px; color:var(--text-3)}
+.secitem .mini{display:flex; gap:4px}
+.mini button{width:25px; height:25px; border-radius:7px; border:1px solid var(--border); background:var(--bg-2);
+  color:var(--text-3); display:grid; place-items:center; cursor:pointer}
+.mini button:hover{color:var(--blue-500); border-color:var(--border-2)}
+.secitem.hidden{opacity:.52; border-style:dashed}
+.secitem.hidden .tx b{text-decoration:line-through; text-decoration-color:var(--text-3)}
+.secitem.dragging{
+  transform:rotate(-1.4deg) scale(1.025); border-color:var(--blue-500);
+  box-shadow:0 14px 32px var(--glow); position:relative; z-index:2;
+}
+.dropzone{
+  height:38px; border-radius:var(--r-md); border:1.5px dashed var(--blue-500);
+  background:var(--info-bg); display:grid; place-items:center;
+  font-size:11px; color:var(--blue-500); font-weight:600;
+}
+.addsec{
+  display:flex; align-items:center; justify-content:center; gap:7px; padding:10px; border-radius:var(--r-md);
+  border:1.5px dashed var(--border-2); background:transparent; color:var(--text-2);
+  font-family:var(--f-display); font-size:12.5px; font-weight:600; cursor:pointer; width:100%;
+}
+.addsec:hover{color:var(--blue-500); border-color:var(--blue-500); background:var(--info-bg)}
+
+.prev{padding:12px; display:flex; flex-direction:column; gap:8px}
+.prev-row{
+  border-radius:var(--r-md); border:1px solid var(--border); overflow:hidden;
+  background:var(--surface); position:relative;
+}
+.prev-row .lbl{
+  position:absolute; top:6px; left:8px; font-family:var(--f-mono); font-size:8.5px; letter-spacing:.08em;
+  text-transform:uppercase; padding:2px 6px; border-radius:5px;
+  background:var(--glass-2); color:var(--text-3); border:1px solid var(--border); backdrop-filter:blur(8px);
+}
+.prev-row.active{border-color:var(--blue-500); box-shadow:0 0 0 2px var(--info-bg)}
+.pv-hero{height:82px; display:grid; place-items:center; gap:5px; padding:10px;
+  background:linear-gradient(140deg,rgba(10,132,255,.16),rgba(31,182,224,.09)); text-align:center}
+.pv-hero b{font-family:var(--f-display); font-size:12.5px; font-weight:700}
+.pv-hero span{font-size:9.5px; color:var(--text-2)}
+.pv-hero .bs{display:flex; gap:5px; margin-top:3px}
+.pv-hero .bs i{height:14px; width:46px; border-radius:5px; background:var(--blue-500)}
+.pv-hero .bs i:last-child{background:var(--border-2)}
+.pv-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:12px}
+.pv-stats div{text-align:center; padding:7px 3px; border-radius:8px; background:var(--bg-2); border:1px solid var(--border)}
+.pv-stats b{display:block; font-family:var(--f-display); font-size:13px; font-weight:700; color:var(--blue-500)}
+.pv-stats span{font-size:8.5px; color:var(--text-3)}
+.pv-rows{padding:14px 12px 12px; display:flex; flex-direction:column; gap:5px}
+.pv-rows i{display:block; height:6px; border-radius:3px; background:var(--border)}
+.pv-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding:14px 12px 12px}
+.pv-cards div{height:44px; border-radius:8px; background:linear-gradient(140deg,rgba(10,132,255,.2),rgba(0,87,184,.1)); border:1px solid var(--border)}
+
+.form-grid{padding:14px 16px; display:grid; gap:12px}
+.lab{display:block; font-family:var(--f-display); font-size:11.5px; font-weight:600; margin-bottom:5px}
+.lab em{font-style:normal; color:var(--crit)}
+.inp{
+  border:1px solid var(--border); border-radius:10px; padding:9px 12px; background:var(--surface);
+  font-family:var(--f-body); font-size:12.5px; color:var(--text); width:100%;
+}
+.inp.ph{color:var(--text-3)}
+.inp-focus{border-color:var(--blue-500); box-shadow:0 0 0 3px var(--info-bg)}
+.hint{font-size:10.5px; color:var(--text-3); margin-top:4px; font-family:var(--f-mono)}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.switch{display:flex; align-items:center; gap:10px; font-size:12.5px}
+.sw{width:38px; height:21px; border-radius:999px; background:var(--blue-500); position:relative; flex:none; box-shadow:0 2px 8px var(--glow)}
+.sw::after{content:""; position:absolute; top:2.5px; right:2.5px; width:16px; height:16px; border-radius:50%; background:#fff}
+.sw.off{background:var(--border-2); box-shadow:none}
+.sw.off::after{right:auto; left:2.5px}
+.form-foot{display:flex; gap:9px; padding:13px 16px; border-top:1px solid var(--border); flex-wrap:wrap}
+.form-foot .sp{margin-left:auto}
+
+/* responsive */
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr; padding:32px 22px}
+  .hero-visual{height:250px}
+  .stats{grid-template-columns:repeat(2,1fr); margin:0 16px}
+  .sec{padding:32px 22px}
+  .cards3{grid-template-columns:1fr}
+  .nav-menu{display:none}
+  .dash-grid,.build,.tiles{grid-template-columns:1fr}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .admin{grid-template-columns:1fr}
+  .side{flex-direction:row; overflow-x:auto; border-right:0; border-bottom:1px solid var(--border)}
+  .side-lab,.side-foot,.side a .cnt{display:none}
+  .side a{white-space:nowrap}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important; transition:none !important}
+}
+</style>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-chip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 01-3.4 0"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 20v-2a4 4 0 00-3-3.9"/><path d="M16 3.1a4 4 0 010 7.8"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></symbol>
+  <symbol id="i-award" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></symbol>
+  <symbol id="i-cap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9L12 4 2 9l10 5 10-5z"/><path d="M6 11.5V17c0 1.5 3 3 6 3s6-1.5 6-3v-5.5"/></symbol>
+  <symbol id="i-news" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a2 2 0 012 2v12a2 2 0 002 2H5a2 2 0 01-2-2V5a1 1 0 011-1z"/><path d="M7 8h7M7 12h7M7 16h4"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5-9 5-9-5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><path d="M2.5 6.5L12 13l9.5-6.5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 9.3-8 10.5-4.6-1.2-8-5.5-8-10.5v-6L12 2z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3.2"/><path d="M4 5.5v13c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2v-13"/><path d="M4 12c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2"/></symbol>
+  <symbol id="i-cog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 14.5a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5v.2a2 2 0 11-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1h-.2a2 2 0 110-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5v-.2a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1h.2a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 014 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-eyeoff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 5.2A9.7 9.7 0 0112 5c6.4 0 10 7 10 7a17 17 0 01-3.2 4.1M6.6 6.6A17 17 0 002 12s3.6 7 10 7a9.6 9.6 0 004.3-1"/><path d="M3 3l18 18"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 01-1-1V4a1 1 0 011-1h10a1 1 0 011 1v1"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/><path d="M10 11v5M14 11v5"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-eyefill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 7"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2l8 8-3 1-4 4-1 6-3-4-5 5 5-5-4-3 6-1 4-4 1-3z"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.4"/><path d="M3 3v4h4"/><path d="M12 7.5V12l3 2"/></symbol>
+</svg>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="brandline">
+      <div class="brandmark"><svg width="24" height="24"><use href="#i-chip"/></svg></div>
+      <div>
+        <div class="eyebrow">Phase 1 · UI Preview</div>
+        <h1>แผนกวิชาเทคโนโลยีคอมพิวเตอร์</h1>
+        <p class="sub">วิทยาลัยเทคนิคร้อยเอ็ด · ตัวอย่างหน้าจอก่อนเริ่มพัฒนา 4 หน้าจอหลัก</p>
+      </div>
+    </div>
+    <button class="themebtn" id="themeToggle" type="button" aria-label="สลับโหมดสว่าง/มืด">
+      <svg width="15" height="15"><use href="#i-sun"/></svg><span id="themeLabel">โหมดมืด</span>
+    </button>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="หน้าจอตัวอย่าง">
+    <button class="tab" role="tab" aria-selected="true" aria-controls="s1" id="t1" type="button"><span class="n">01</span> หน้าแรก (Public)</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="s2" id="t2" type="button"><span class="n">02</span> Admin Dashboard</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="s3" id="t3" type="button"><span class="n">03</span> จัดการข่าว (CRUD)</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="s4" id="t4" type="button"><span class="n">04</span> Homepage Builder</button>
+  </div>
+
+  <!-- ═══════════════ SCREEN 1 ═══════════════ -->
+  <section id="s1" role="tabpanel" aria-labelledby="t1">
+    <div class="frame">
+      <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">https://tcom.rtc.ac.th/</div></div>
+      <div class="screen viewport"><div class="inner site">
+        <div class="grid-bg"></div>
+
+        <nav class="navbar">
+          <div class="nav-logo">
+            <div class="mk"><svg width="18" height="18"><use href="#i-chip"/></svg></div>
+            <div class="tx"><strong>เทคโนโลยีคอมพิวเตอร์</strong><span>วิทยาลัยเทคนิคร้อยเอ็ด</span></div>
+          </div>
+          <div class="nav-menu">
+            <a href="#" class="on">หน้าแรก</a><a href="#">เกี่ยวกับแผนก</a><a href="#">หลักสูตร</a>
+            <a href="#">บุคลากร</a><a href="#">ผลงาน</a><a href="#">กิจกรรม</a><a href="#">ข่าวสาร</a><a href="#">ติดต่อ</a>
+          </div>
+          <div class="nav-act">
+            <button class="icon-btn" type="button" aria-label="ค้นหา"><svg width="15" height="15"><use href="#i-search"/></svg></button>
+            <button class="icon-btn" type="button" aria-label="สลับธีม"><svg width="15" height="15"><use href="#i-sun"/></svg></button>
+          </div>
+        </nav>
+
+        <div class="hero">
+          <div>
+            <span class="badge"><span class="pulse"></span> เปิดรับสมัคร ปวช. / ปวส. ปีการศึกษา 2570</span>
+            <h2>สร้างทักษะดิจิทัล<br><span class="grad">สร้างนวัตกรรม สร้างอนาคต</span></h2>
+            <p class="lead">แผนกวิชาเทคโนโลยีคอมพิวเตอร์ มุ่งผลิตช่างเทคนิคและนักเทคโนโลยีที่มีสมรรถนะวิชาชีพตรงตามความต้องการของสถานประกอบการ</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">ดูหลักสูตร <svg width="15" height="15"><use href="#i-arrow"/></svg></a>
+              <a class="btn btn-ghost" href="#">เกี่ยวกับแผนก</a>
+            </div>
+            <div class="hero-trust">
+              <div><strong>2 หลักสูตร</strong><span>ปวช. · ปวส.</span></div>
+              <div><strong>5 ห้องปฏิบัติการ</strong><span>Computer · Network · IoT · AI · Multimedia</span></div>
+              <div><strong>100%</strong><span>ฝึกงานในสถานประกอบการ</span></div>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-hidden="true">
+            <div class="glass-card gc-main">
+              <div class="gc-head">
+                <div class="ic"><svg width="16" height="16"><use href="#i-cap"/></svg></div>
+                <div><b>ผู้สำเร็จการศึกษา</b><small>ย้อนหลัง 6 ปีการศึกษา</small></div>
+              </div>
+              <div class="bars">
+                <i style="height:44%"></i><i style="height:58%"></i><i style="height:52%"></i>
+                <i style="height:71%"></i><i style="height:84%"></i><i style="height:100%"></i>
+              </div>
+              <div class="chiprow"><span class="chip">IoT</span><span class="chip">Network</span><span class="chip">Web</span><span class="chip">AI</span></div>
+            </div>
+            <div class="glass-card gc-a">
+              <div class="gc-head"><div class="ic"><svg width="15" height="15"><use href="#i-award"/></svg></div><div><b>รางวัลระดับชาติ</b></div></div>
+              <div class="kpi">18<small>+3 ปีนี้</small></div>
+            </div>
+            <div class="glass-card gc-b">
+              <div class="gc-head"><div class="ic"><svg width="15" height="15"><use href="#i-eyefill"/></svg></div><div><b>ผู้เข้าชมเดือนนี้</b></div></div>
+              <svg class="spark" viewBox="0 0 120 42" preserveAspectRatio="none">
+                <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#0A84FF" stop-opacity=".45"/><stop offset="1" stop-color="#0A84FF" stop-opacity="0"/>
+                </linearGradient></defs>
+                <path d="M0 32 L20 26 L40 29 L60 18 L80 21 L100 10 L120 6 L120 42 L0 42 Z" fill="url(#sg)"/>
+                <path d="M0 32 L20 26 L40 29 L60 18 L80 21 L100 10 L120 6" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="120" cy="6" r="3" fill="#0A84FF"/>
+              </svg>
+              <div class="kpi" style="font-size:19px">4,182</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="ic"><svg width="19" height="19"><use href="#i-cap"/></svg></div>
+            <div class="num mono" data-count="248">248</div><div class="lb">นักเรียน นักศึกษา</div>
+          </div>
+          <div class="stat">
+            <div class="ic"><svg width="19" height="19"><use href="#i-users"/></svg></div>
+            <div class="num mono" data-count="12">12</div><div class="lb">ครูและบุคลากร</div>
+          </div>
+          <div class="stat">
+            <div class="ic"><svg width="19" height="19"><use href="#i-book"/></svg></div>
+            <div class="num mono" data-count="36">36</div><div class="lb">รายวิชาที่เปิดสอน</div>
+          </div>
+          <div class="stat">
+            <div class="ic"><svg width="19" height="19"><use href="#i-award"/></svg></div>
+            <div class="num mono" data-count="64">64</div><div class="lb">ผลงานนักศึกษา</div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-head">
+            <div>
+              <div class="eyebrow">News</div>
+              <h3>ข่าวประชาสัมพันธ์</h3>
+              <p>ข่าวสารและประกาศจากแผนกวิชา</p>
+            </div>
+            <a class="btn btn-ghost btn-sm" href="#">ดูทั้งหมด <svg width="14" height="14"><use href="#i-arrow"/></svg></a>
+          </div>
+          <div class="cards3">
+            <article class="ncard">
+              <div class="thumb t1"><svg width="34" height="34" style="position:relative;z-index:1"><use href="#i-award"/></svg></div>
+              <div class="body">
+                <div class="tagrow"><span class="tag">รางวัล</span><span class="dt">12 ก.ย. 2569</span></div>
+                <h4>นักศึกษา ปวส.2 คว้ารางวัลรองชนะเลิศ การแข่งขันทักษะเครือข่ายคอมพิวเตอร์ ระดับภาค</h4>
+                <p>ทีมนักศึกษาแผนกวิชาเทคโนโลยีคอมพิวเตอร์ เข้าร่วมการแข่งขันทักษะวิชาชีพ ระดับภาคตะวันออกเฉียงเหนือ ณ จังหวัดอุดรธานี</p>
+                <div class="foot"><svg width="13" height="13"><use href="#i-eyefill"/></svg> 1,204 ครั้ง</div>
+              </div>
+            </article>
+            <article class="ncard">
+              <div class="thumb t2"><svg width="34" height="34" style="position:relative;z-index:1"><use href="#i-chip"/></svg></div>
+              <div class="body">
+                <div class="tagrow"><span class="tag">อบรม</span><span class="dt">5 ก.ย. 2569</span></div>
+                <h4>เปิดอบรมหลักสูตรระยะสั้น “การติดตั้งและดูแลระบบปฏิบัติการ Linux Server”</h4>
+                <p>อบรม 30 ชั่วโมง สำหรับนักศึกษาและบุคคลทั่วไป พร้อมรับวุฒิบัตรจากวิทยาลัย รับจำนวนจำกัด 25 ที่นั่ง</p>
+                <div class="foot"><svg width="13" height="13"><use href="#i-eyefill"/></svg> 863 ครั้ง</div>
+              </div>
+            </article>
+            <article class="ncard">
+              <div class="thumb t3"><svg width="34" height="34" style="position:relative;z-index:1"><use href="#i-layers"/></svg></div>
+              <div class="body">
+                <div class="tagrow"><span class="tag">ประชาสัมพันธ์</span><span class="dt">28 ส.ค. 2569</span></div>
+                <h4>เปิดรับสมัครนักเรียนนักศึกษาใหม่ ประจำปีการศึกษา 2570</h4>
+                <p>รับสมัครทั้งระดับ ปวช. และ ปวส. สาขาวิชาเทคโนโลยีคอมพิวเตอร์ สมัครออนไลน์ได้ตั้งแต่บัดนี้เป็นต้นไป</p>
+                <div class="foot"><svg width="13" height="13"><use href="#i-eyefill"/></svg> 2,517 ครั้ง</div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <p class="note"><svg width="16" height="16" style="flex:none;margin-top:2px;color:var(--blue-500)"><use href="#i-layers"/></svg>
+      <span><b>ทุกส่วนบนหน้านี้อ่านจากฐานข้อมูล</b> — ลำดับของ Section มาจากตาราง <span class="mono">homepage_sections</span>,
+      เมนูมาจาก <span class="mono">navigation_items</span>, ตัวเลขสถิติคำนวณจากจำนวนจริงในแต่ละตาราง ไม่มีข้อความใดถูก hard-code ไว้ในโค้ด</span></p>
+  </section>
+
+  <!-- ═══════════════ SCREEN 2 ═══════════════ -->
+  <section id="s2" role="tabpanel" aria-labelledby="t2" hidden>
+    <div class="frame">
+      <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">https://tcom.rtc.ac.th/admin</div></div>
+      <div class="screen viewport"><div class="inner admin">
+
+        <aside class="side">
+          <div class="side-brand">
+            <div class="mk"><svg width="17" height="17"><use href="#i-chip"/></svg></div>
+            <div><strong>TCOM Admin</strong><span>v1.0</span></div>
+          </div>
+          <a href="#" class="on"><svg width="15" height="15"><use href="#i-grid"/></svg> แดชบอร์ด</a>
+          <div class="side-lab">เนื้อหาเว็บไซต์</div>
+          <a href="#"><svg width="15" height="15"><use href="#i-layers"/></svg> หน้าแรก</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-news"/></svg> ข่าวประชาสัมพันธ์ <span class="cnt">3</span></a>
+          <a href="#"><svg width="15" height="15"><use href="#i-award"/></svg> กิจกรรม</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-users"/></svg> บุคลากร</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-book"/></svg> หลักสูตร / รายวิชา</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-img"/></svg> คลังภาพ</a>
+          <div class="side-lab">ระบบ</div>
+          <a href="#"><svg width="15" height="15"><use href="#i-mail"/></svg> ข้อความติดต่อ <span class="cnt">5</span></a>
+          <a href="#"><svg width="15" height="15"><use href="#i-shield"/></svg> บันทึกการใช้งาน</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-db"/></svg> สำรองข้อมูล</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-cog"/></svg> ตั้งค่า</a>
+          <div class="side-foot">
+            <div class="avatar">สว</div>
+            <div class="tx"><b>สมชาย วงศ์ประเสริฐ</b><span>SUPER_ADMIN</span></div>
+          </div>
+        </aside>
+
+        <div class="main">
+          <div class="topbar">
+            <div><div class="crumb">ผู้ดูแลระบบ</div><h3>แดชบอร์ด</h3></div>
+            <div class="searchbox"><svg width="14" height="14"><use href="#i-search"/></svg> ค้นหาทั่วทั้งระบบ <span class="k">⌘K</span></div>
+            <button class="icon-btn bell" type="button" aria-label="การแจ้งเตือน 5 รายการ"><svg width="15" height="15"><use href="#i-bell"/></svg><span class="dot"></span></button>
+            <div class="avatar">สว</div>
+          </div>
+
+          <div class="content">
+            <div class="tiles">
+              <div class="tile">
+                <div class="top"><div class="ic"><svg width="16" height="16"><use href="#i-eyefill"/></svg></div><span class="delta up"><svg width="10" height="10"><use href="#i-up"/></svg> 12.4%</span></div>
+                <div class="val">4,182</div><div class="lb">ผู้เข้าชมเดือนนี้</div>
+              </div>
+              <div class="tile">
+                <div class="top"><div class="ic"><svg width="16" height="16"><use href="#i-news"/></svg></div><span class="delta up"><svg width="10" height="10"><use href="#i-up"/></svg> 6</span></div>
+                <div class="val">42</div><div class="lb">ข่าวที่เผยแพร่แล้ว</div>
+              </div>
+              <div class="tile">
+                <div class="top"><div class="ic"><svg width="16" height="16"><use href="#i-award"/></svg></div><span class="delta flat">เดือนนี้ 4</span></div>
+                <div class="val">28</div><div class="lb">กิจกรรมทั้งหมด</div>
+              </div>
+              <div class="tile">
+                <div class="top"><div class="ic"><svg width="16" height="16"><use href="#i-mail"/></svg></div><span class="delta up">ใหม่ 5</span></div>
+                <div class="val">17</div><div class="lb">ข้อความติดต่อ</div>
+              </div>
+            </div>
+
+            <div class="dash-grid">
+              <div class="card">
+                <div class="card-h">
+                  <h4>ผู้เข้าชมเว็บไซต์ · 12 เดือนล่าสุด</h4>
+                  <div class="legend"><span><i style="background:#0A84FF"></i>ผู้เข้าชม</span><span><i style="background:#1FB6E0"></i>เปิดอ่านข่าว</span></div>
+                </div>
+                <div style="padding:16px 14px 12px">
+                  <svg viewBox="0 0 620 220" style="width:100%;height:auto" role="img" aria-label="กราฟผู้เข้าชมรายเดือน สูงสุด 4,182 ครั้งในเดือนกันยายน">
+                    <defs>
+                      <linearGradient id="ga" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#0A84FF" stop-opacity=".34"/><stop offset="1" stop-color="#0A84FF" stop-opacity="0"/>
+                      </linearGradient>
+                      <linearGradient id="gb" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#1FB6E0" stop-opacity=".22"/><stop offset="1" stop-color="#1FB6E0" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <g stroke="currentColor" opacity=".16" stroke-width="1">
+                      <line x1="46" y1="20"  x2="610" y2="20"/><line x1="46" y1="60" x2="610" y2="60"/>
+                      <line x1="46" y1="100" x2="610" y2="100"/><line x1="46" y1="140" x2="610" y2="140"/><line x1="46" y1="180" x2="610" y2="180"/>
+                    </g>
+                    <g fill="currentColor" opacity=".55" font-size="10" font-family="IBM Plex Mono, monospace" text-anchor="end">
+                      <text x="40" y="24">5,000</text><text x="40" y="64">4,000</text><text x="40" y="104">3,000</text>
+                      <text x="40" y="144">2,000</text><text x="40" y="184">1,000</text>
+                    </g>
+                    <path d="M46 154 L97 146 L148 160 L199 132 L250 138 L301 118 L352 124 L403 96 L454 84 L505 72 L556 66 L607 53 L607 180 L46 180 Z" fill="url(#ga)"/>
+                    <path d="M46 154 L97 146 L148 160 L199 132 L250 138 L301 118 L352 124 L403 96 L454 84 L505 72 L556 66 L607 53"
+                          fill="none" stroke="#0A84FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M46 172 L97 168 L148 174 L199 158 L250 164 L301 150 L352 156 L403 138 L454 130 L505 124 L556 116 L607 108 L607 180 L46 180 Z" fill="url(#gb)"/>
+                    <path d="M46 172 L97 168 L148 174 L199 158 L250 164 L301 150 L352 156 L403 138 L454 130 L505 124 L556 116 L607 108"
+                          fill="none" stroke="#1FB6E0" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="607" cy="53" r="4.5" fill="#0A84FF"/><circle cx="607" cy="53" r="9" fill="#0A84FF" opacity=".18"/>
+                    <g fill="currentColor" opacity=".55" font-size="10" font-family="IBM Plex Mono, monospace" text-anchor="middle">
+                      <text x="46" y="200">ต.ค.</text><text x="97" y="200">พ.ย.</text><text x="148" y="200">ธ.ค.</text><text x="199" y="200">ม.ค.</text>
+                      <text x="250" y="200">ก.พ.</text><text x="301" y="200">มี.ค.</text><text x="352" y="200">เม.ย.</text><text x="403" y="200">พ.ค.</text>
+                      <text x="454" y="200">มิ.ย.</text><text x="505" y="200">ก.ค.</text><text x="556" y="200">ส.ค.</text><text x="607" y="200">ก.ย.</text>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div class="card">
+                  <div class="card-h"><h4>กิจกรรมล่าสุด</h4><a class="lnk" href="#">ดูบันทึกทั้งหมด</a></div>
+                  <div class="feed">
+                    <div class="feed-it">
+                      <div class="ic ic-good"><svg width="14" height="14"><use href="#i-check"/></svg></div>
+                      <div class="tx"><b>เผยแพร่ข่าว “รางวัลรองชนะเลิศ…”</b><span>สมชาย วงศ์ประเสริฐ · PUBLISH</span></div>
+                      <time>5 น.</time>
+                    </div>
+                    <div class="feed-it">
+                      <div class="ic ic-warn"><svg width="14" height="14"><use href="#i-clock"/></svg></div>
+                      <div class="tx"><b>ส่งข่าวเข้ารอตรวจสอบ 2 รายการ</b><span>ปิยะดา ศรีสุนทร · EDITOR</span></div>
+                      <time>1 ชม.</time>
+                    </div>
+                    <div class="feed-it">
+                      <div class="ic ic-blue"><svg width="14" height="14"><use href="#i-img"/></svg></div>
+                      <div class="tx"><b>อัปโหลดภาพเข้าคลัง 14 ไฟล์</b><span>อัลบั้ม “แข่งขันทักษะ 2569”</span></div>
+                      <time>3 ชม.</time>
+                    </div>
+                    <div class="feed-it">
+                      <div class="ic ic-blue"><svg width="14" height="14"><use href="#i-layers"/></svg></div>
+                      <div class="tx"><b>สลับลำดับ Section หน้าแรก</b><span>Statistics ขึ้นก่อน About</span></div>
+                      <time>เมื่อวาน</time>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-h"><h4>สถานะระบบ</h4></div>
+                  <div>
+                    <div class="status-row"><span class="led led-good"></span><span class="nm">ฐานข้อมูล PostgreSQL</span><span class="vl">18 ms</span></div>
+                    <div class="status-row"><span class="led led-good"></span><span class="nm">API Server</span><span class="vl">uptime 99.9%</span></div>
+                    <div class="status-row"><span class="led led-warn"></span><span class="nm">พื้นที่จัดเก็บไฟล์</span><span class="meter"><i style="width:68%"></i></span><span class="vl">6.8/10 GB</span></div>
+                    <div class="status-row"><span class="led led-good"></span><span class="nm">สำรองข้อมูลล่าสุด</span><span class="vl">วันนี้ 03:00</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <p class="note"><svg width="16" height="16" style="flex:none;margin-top:2px;color:var(--blue-500)"><use href="#i-shield"/></svg>
+      <span><b>เมนูในแถบข้างแสดงตามสิทธิ์ของผู้ใช้</b> — บัญชี EDITOR จะไม่เห็นเมนูผู้ใช้งาน สำรองข้อมูล และตั้งค่า
+      และถึงแม้จะพิมพ์ URL ตรงเข้าไป Backend ก็จะตอบกลับ <span class="mono">403 FORBIDDEN</span> เพราะตรวจสิทธิ์ที่ API ทุกครั้ง</span></p>
+  </section>
+
+  <!-- ═══════════════ SCREEN 3 ═══════════════ -->
+  <section id="s3" role="tabpanel" aria-labelledby="t3" hidden>
+    <div class="frame">
+      <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">https://tcom.rtc.ac.th/admin/news</div></div>
+      <div class="screen viewport"><div class="inner admin">
+
+        <aside class="side">
+          <div class="side-brand">
+            <div class="mk"><svg width="17" height="17"><use href="#i-chip"/></svg></div>
+            <div><strong>TCOM Admin</strong><span>v1.0</span></div>
+          </div>
+          <a href="#"><svg width="15" height="15"><use href="#i-grid"/></svg> แดชบอร์ด</a>
+          <div class="side-lab">เนื้อหาเว็บไซต์</div>
+          <a href="#"><svg width="15" height="15"><use href="#i-layers"/></svg> หน้าแรก</a>
+          <a href="#" class="on"><svg width="15" height="15"><use href="#i-news"/></svg> ข่าวประชาสัมพันธ์ <span class="cnt">3</span></a>
+          <a href="#"><svg width="15" height="15"><use href="#i-award"/></svg> กิจกรรม</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-users"/></svg> บุคลากร</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-book"/></svg> หลักสูตร / รายวิชา</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-img"/></svg> คลังภาพ</a>
+          <div class="side-lab">ระบบ</div>
+          <a href="#"><svg width="15" height="15"><use href="#i-mail"/></svg> ข้อความติดต่อ <span class="cnt">5</span></a>
+          <a href="#"><svg width="15" height="15"><use href="#i-shield"/></svg> บันทึกการใช้งาน</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-db"/></svg> สำรองข้อมูล</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-cog"/></svg> ตั้งค่า</a>
+          <div class="side-foot">
+            <div class="avatar">สว</div>
+            <div class="tx"><b>สมชาย วงศ์ประเสริฐ</b><span>SUPER_ADMIN</span></div>
+          </div>
+        </aside>
+
+        <div class="main">
+          <div class="topbar">
+            <div><div class="crumb">ผู้ดูแลระบบ · เนื้อหาเว็บไซต์</div><h3>ข่าวประชาสัมพันธ์</h3></div>
+            <a class="btn btn-primary btn-sm" href="#" style="margin-left:auto"><svg width="14" height="14"><use href="#i-plus"/></svg> เพิ่มข่าวใหม่</a>
+            <button class="icon-btn bell" type="button" aria-label="การแจ้งเตือน"><svg width="15" height="15"><use href="#i-bell"/></svg><span class="dot"></span></button>
+          </div>
+
+          <div class="content">
+            <div class="card">
+              <div class="toolbar">
+                <span class="field grow"><svg width="14" height="14"><use href="#i-search"/></svg> ค้นหาจากหัวข้อหรือเนื้อหาข่าว…</span>
+                <span class="field sel">สถานะ: <b>ทั้งหมด</b> <svg width="13" height="13"><use href="#i-chev"/></svg></span>
+                <span class="field sel">หมวด: <b>ทั้งหมด</b> <svg width="13" height="13"><use href="#i-chev"/></svg></span>
+                <span class="field sel">เรียง: <b>ใหม่ล่าสุด</b> <svg width="13" height="13"><use href="#i-chev"/></svg></span>
+              </div>
+
+              <div style="overflow-x:auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>หัวข้อข่าว</th><th>หมวดหมู่</th><th>ผู้เขียน</th><th>สถานะ</th>
+                      <th style="text-align:right">ยอดชม</th><th>เผยแพร่</th><th style="text-align:right">จัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><div class="cell-title"><span class="th t1"></span><span>
+                        <b>นักศึกษา ปวส.2 คว้ารางวัลรองชนะเลิศ การแข่งขันทักษะเครือข่ายคอมพิวเตอร์<span class="pin"><svg width="8" height="8"><use href="#i-pin"/></svg> ปักหมุด</span></b>
+                        <span>/news/award-network-skill-2569</span></span></div></td>
+                      <td><span class="tag">รางวัล</span></td>
+                      <td><div class="who"><span class="av">สว</span> สมชาย</div></td>
+                      <td><span class="pill p-pub"><i></i> เผยแพร่แล้ว</span></td>
+                      <td style="text-align:right" class="mono">1,204</td>
+                      <td class="mono" style="font-size:11px">12 ก.ย. 69</td>
+                      <td><div class="acts">
+                        <button class="act" type="button" aria-label="ดูตัวอย่าง"><svg width="13" height="13"><use href="#i-eye"/></svg></button>
+                        <button class="act" type="button" aria-label="แก้ไข"><svg width="13" height="13"><use href="#i-pencil"/></svg></button>
+                        <button class="act" type="button" aria-label="ประวัติเวอร์ชัน"><svg width="13" height="13"><use href="#i-hist"/></svg></button>
+                        <button class="act danger" type="button" aria-label="ลบ"><svg width="13" height="13"><use href="#i-trash"/></svg></button>
+                      </div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-title"><span class="th t2"></span><span>
+                        <b>เปิดอบรมหลักสูตรระยะสั้น “การติดตั้งและดูแลระบบปฏิบัติการ Linux Server”</b>
+                        <span>/news/short-course-linux-server</span></span></div></td>
+                      <td><span class="tag">อบรม</span></td>
+                      <td><div class="who"><span class="av">ปศ</span> ปิยะดา</div></td>
+                      <td><span class="pill p-rev"><i></i> รอตรวจสอบ</span></td>
+                      <td style="text-align:right" class="mono">—</td>
+                      <td class="mono" style="font-size:11px">—</td>
+                      <td><div class="acts">
+                        <button class="act" type="button" aria-label="ดูตัวอย่าง"><svg width="13" height="13"><use href="#i-eye"/></svg></button>
+                        <button class="act" type="button" aria-label="แก้ไข"><svg width="13" height="13"><use href="#i-pencil"/></svg></button>
+                        <button class="act" type="button" aria-label="ประวัติเวอร์ชัน"><svg width="13" height="13"><use href="#i-hist"/></svg></button>
+                        <button class="act danger" type="button" aria-label="ลบ"><svg width="13" height="13"><use href="#i-trash"/></svg></button>
+                      </div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-title"><span class="th t3"></span><span>
+                        <b>เปิดรับสมัครนักเรียนนักศึกษาใหม่ ประจำปีการศึกษา 2570</b>
+                        <span>/news/admission-2570</span></span></div></td>
+                      <td><span class="tag">ประชาสัมพันธ์</span></td>
+                      <td><div class="who"><span class="av">สว</span> สมชาย</div></td>
+                      <td><span class="pill p-pub"><i></i> เผยแพร่แล้ว</span></td>
+                      <td style="text-align:right" class="mono">2,517</td>
+                      <td class="mono" style="font-size:11px">28 ส.ค. 69</td>
+                      <td><div class="acts">
+                        <button class="act" type="button" aria-label="ดูตัวอย่าง"><svg width="13" height="13"><use href="#i-eye"/></svg></button>
+                        <button class="act" type="button" aria-label="แก้ไข"><svg width="13" height="13"><use href="#i-pencil"/></svg></button>
+                        <button class="act" type="button" aria-label="ประวัติเวอร์ชัน"><svg width="13" height="13"><use href="#i-hist"/></svg></button>
+                        <button class="act danger" type="button" aria-label="ลบ"><svg width="13" height="13"><use href="#i-trash"/></svg></button>
+                      </div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-title"><span class="th t2"></span><span>
+                        <b>กำหนดการปฐมนิเทศนักศึกษาฝึกงาน ภาคเรียนที่ 2/2569</b>
+                        <span>/news/internship-orientation-2-2569</span></span></div></td>
+                      <td><span class="tag">ประกาศ</span></td>
+                      <td><div class="who"><span class="av">ธน</span> ธนพล</div></td>
+                      <td><span class="pill p-appr"><i></i> อนุมัติแล้ว</span></td>
+                      <td style="text-align:right" class="mono">—</td>
+                      <td class="mono" style="font-size:11px">ตั้งเวลา 20 ก.ย.</td>
+                      <td><div class="acts">
+                        <button class="act" type="button" aria-label="ดูตัวอย่าง"><svg width="13" height="13"><use href="#i-eye"/></svg></button>
+                        <button class="act" type="button" aria-label="แก้ไข"><svg width="13" height="13"><use href="#i-pencil"/></svg></button>
+                        <button class="act" type="button" aria-label="ประวัติเวอร์ชัน"><svg width="13" height="13"><use href="#i-hist"/></svg></button>
+                        <button class="act danger" type="button" aria-label="ลบ"><svg width="13" height="13"><use href="#i-trash"/></svg></button>
+                      </div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-title"><span class="th t1"></span><span>
+                        <b>โครงการบริการวิชาการ ซ่อมคอมพิวเตอร์ให้โรงเรียนในพื้นที่ อำเภอธวัชบุรี</b>
+                        <span>/news/service-project-thawatburi</span></span></div></td>
+                      <td><span class="tag">จิตอาสา</span></td>
+                      <td><div class="who"><span class="av">ปศ</span> ปิยะดา</div></td>
+                      <td><span class="pill p-draft"><i></i> ฉบับร่าง</span></td>
+                      <td style="text-align:right" class="mono">—</td>
+                      <td class="mono" style="font-size:11px">—</td>
+                      <td><div class="acts">
+                        <button class="act" type="button" aria-label="ดูตัวอย่าง"><svg width="13" height="13"><use href="#i-eye"/></svg></button>
+                        <button class="act" type="button" aria-label="แก้ไข"><svg width="13" height="13"><use href="#i-pencil"/></svg></button>
+                        <button class="act" type="button" aria-label="ประวัติเวอร์ชัน"><svg width="13" height="13"><use href="#i-hist"/></svg></button>
+                        <button class="act danger" type="button" aria-label="ลบ"><svg width="13" height="13"><use href="#i-trash"/></svg></button>
+                      </div></td>
+                    </tr>
+                    <tr>
+                      <td><div class="cell-title"><span class="th t3"></span><span>
+                        <b>ผลการคัดเลือกนักศึกษาเข้าร่วมโครงการทวิภาคี ปีการศึกษา 2569</b>
+                        <span>/news/dual-vocational-result-2569</span></span></div></td>
+                      <td><span class="tag">ประกาศ</span></td>
+                      <td><div class="who"><span class="av">สว</span> สมชาย</div></td>
+                      <td><span class="pill p-arch"><i></i> เก็บถาวร</span></td>
+                      <td style="text-align:right" class="mono">941</td>
+                      <td class="mono" style="font-size:11px">14 มิ.ย. 69</td>
+                      <td><div class="acts">
+                        <button class="act" type="button" aria-label="ดูตัวอย่าง"><svg width="13" height="13"><use href="#i-eye"/></svg></button>
+                        <button class="act" type="button" aria-label="แก้ไข"><svg width="13" height="13"><use href="#i-pencil"/></svg></button>
+                        <button class="act" type="button" aria-label="ประวัติเวอร์ชัน"><svg width="13" height="13"><use href="#i-hist"/></svg></button>
+                        <button class="act danger" type="button" aria-label="ลบ"><svg width="13" height="13"><use href="#i-trash"/></svg></button>
+                      </div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="tfoot">
+                <span class="info">แสดง 1–6 จากทั้งหมด 42 รายการ</span>
+                <span class="field sel" style="padding:5px 9px;font-size:11.5px">แสดง <b>10</b> แถว <svg width="12" height="12"><use href="#i-chev"/></svg></span>
+                <div class="pg">
+                  <button type="button" aria-label="หน้าก่อนหน้า">‹</button>
+                  <button class="on" type="button" aria-current="page">1</button>
+                  <button type="button">2</button><button type="button">3</button><button type="button">4</button><button type="button">5</button>
+                  <button type="button" aria-label="หน้าถัดไป">›</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <p class="note"><svg width="16" height="16" style="flex:none;margin-top:2px;color:var(--blue-500)"><use href="#i-news"/></svg>
+      <span><b>ตารางนี้คือรูปแบบมาตรฐานของทุก Entity</b> — บุคลากร รายวิชา กิจกรรม ผลงาน ห้องปฏิบัติการ ใช้คอมโพเนนต์
+      <span class="mono">&lt;DataTable&gt;</span> ตัวเดียวกัน เปลี่ยนแค่นิยามคอลัมน์ และบนมือถือจะสลับเป็น Card View อัตโนมัติ</span></p>
+  </section>
+
+  <!-- ═══════════════ SCREEN 4 ═══════════════ -->
+  <section id="s4" role="tabpanel" aria-labelledby="t4" hidden>
+    <div class="frame">
+      <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">https://tcom.rtc.ac.th/admin/homepage</div></div>
+      <div class="screen viewport"><div class="inner admin">
+
+        <aside class="side">
+          <div class="side-brand">
+            <div class="mk"><svg width="17" height="17"><use href="#i-chip"/></svg></div>
+            <div><strong>TCOM Admin</strong><span>v1.0</span></div>
+          </div>
+          <a href="#"><svg width="15" height="15"><use href="#i-grid"/></svg> แดชบอร์ด</a>
+          <div class="side-lab">เนื้อหาเว็บไซต์</div>
+          <a href="#" class="on"><svg width="15" height="15"><use href="#i-layers"/></svg> หน้าแรก</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-news"/></svg> ข่าวประชาสัมพันธ์ <span class="cnt">3</span></a>
+          <a href="#"><svg width="15" height="15"><use href="#i-award"/></svg> กิจกรรม</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-users"/></svg> บุคลากร</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-book"/></svg> หลักสูตร / รายวิชา</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-img"/></svg> คลังภาพ</a>
+          <div class="side-lab">ระบบ</div>
+          <a href="#"><svg width="15" height="15"><use href="#i-mail"/></svg> ข้อความติดต่อ <span class="cnt">5</span></a>
+          <a href="#"><svg width="15" height="15"><use href="#i-shield"/></svg> บันทึกการใช้งาน</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-db"/></svg> สำรองข้อมูล</a>
+          <a href="#"><svg width="15" height="15"><use href="#i-cog"/></svg> ตั้งค่า</a>
+          <div class="side-foot">
+            <div class="avatar">สว</div>
+            <div class="tx"><b>สมชาย วงศ์ประเสริฐ</b><span>SUPER_ADMIN</span></div>
+          </div>
+        </aside>
+
+        <div class="main">
+          <div class="topbar">
+            <div><div class="crumb">ผู้ดูแลระบบ · เนื้อหาเว็บไซต์</div><h3>จัดวางหน้าแรก</h3></div>
+            <span class="pill p-rev" style="margin-left:auto"><i></i> มีการแก้ไขที่ยังไม่บันทึก</span>
+            <a class="btn btn-ghost btn-sm" href="#"><svg width="14" height="14"><use href="#i-eye"/></svg> ดูตัวอย่าง</a>
+            <a class="btn btn-primary btn-sm" href="#">บันทึกและเผยแพร่</a>
+          </div>
+
+          <div class="content">
+            <div class="build">
+
+              <div class="card">
+                <div class="card-h">
+                  <h4>ลำดับ Section</h4>
+                  <span class="dt mono">12 section · แสดง 10</span>
+                </div>
+                <div class="seclist">
+                  <div class="secitem">
+                    <svg class="grip" width="15" height="15"><use href="#i-grip"/></svg>
+                    <span class="ord">01</span>
+                    <span class="tx"><b>ส่วนหัว (Hero)</b><span>HERO</span></span>
+                    <span class="mini">
+                      <button type="button" aria-label="ซ่อน"><svg width="12" height="12"><use href="#i-eye"/></svg></button>
+                      <button type="button" aria-label="ทำสำเนา"><svg width="12" height="12"><use href="#i-copy"/></svg></button>
+                      <button type="button" aria-label="ลบ"><svg width="12" height="12"><use href="#i-trash"/></svg></button>
+                    </span>
+                  </div>
+
+                  <div class="secitem dragging">
+                    <svg class="grip" width="15" height="15"><use href="#i-grip"/></svg>
+                    <span class="ord">02</span>
+                    <span class="tx"><b>สถิติแผนก</b><span>STATISTICS · กำลังลาก</span></span>
+                    <span class="mini">
+                      <button type="button" aria-label="ซ่อน"><svg width="12" height="12"><use href="#i-eye"/></svg></button>
+                      <button type="button" aria-label="ทำสำเนา"><svg width="12" height="12"><use href="#i-copy"/></svg></button>
+                      <button type="button" aria-label="ลบ"><svg width="12" height="12"><use href="#i-trash"/></svg></button>
+                    </span>
+                  </div>
+
+                  <div class="dropzone">วางที่ตำแหน่งนี้ — ลำดับที่ 3</div>
+
+                  <div class="secitem">
+                    <svg class="grip" width="15" height="15"><use href="#i-grip"/></svg>
+                    <span class="ord">03</span>
+                    <span class="tx"><b>เกี่ยวกับแผนก</b><span>ABOUT</span></span>
+                    <span class="mini">
+                      <button type="button" aria-label="ซ่อน"><svg width="12" height="12"><use href="#i-eye"/></svg></button>
+                      <button type="button" aria-label="ทำสำเนา"><svg width="12" height="12"><use href="#i-copy"/></svg></button>
+                      <button type="button" aria-label="ลบ"><svg width="12" height="12"><use href="#i-trash"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="secitem">
+                    <svg class="grip" width="15" height="15"><use href="#i-grip"/></svg>
+                    <span class="ord">04</span>
+                    <span class="tx"><b>หลักสูตรที่เปิดสอน</b><span>PROGRAMS</span></span>
+                    <span class="mini">
+                      <button type="button" aria-label="ซ่อน"><svg width="12" height="12"><use href="#i-eye"/></svg></button>
+                      <button type="button" aria-label="ทำสำเนา"><svg width="12" height="12"><use href="#i-copy"/></svg></button>
+                      <button type="button" aria-label="ลบ"><svg width="12" height="12"><use href="#i-trash"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="secitem">
+                    <svg class="grip" width="15" height="15"><use href="#i-grip"/></svg>
+                    <span class="ord">05</span>
+                    <span class="tx"><b>ครูและบุคลากร</b><span>TEACHERS</span></span>
+                    <span class="mini">
+                      <button type="button" aria-label="ซ่อน"><svg width="12" height="12"><use href="#i-eye"/></svg></button>
+                      <button type="button" aria-label="ทำสำเนา"><svg width="12" height="12"><use href="#i-copy"/></svg></button>
+                      <button type="button" aria-label="ลบ"><svg width="12" height="12"><use href="#i-trash"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="secitem hidden">
+                    <svg class="grip" width="15" height="15"><use href="#i-grip"/></svg>
+                    <span class="ord">06</span>
+                    <span class="tx"><b>คลังภาพกิจกรรม</b><span>GALLERY · ซ่อนอยู่</span></span>
+                    <span class="mini">
+                      <button type="button" aria-label="แสดง"><svg width="12" height="12"><use href="#i-eyeoff"/></svg></button>
+                      <button type="button" aria-label="ทำสำเนา"><svg width="12" height="12"><use href="#i-copy"/></svg></button>
+                      <button type="button" aria-label="ลบ"><svg width="12" height="12"><use href="#i-trash"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="secitem">
+                    <svg class="grip" width="15" height="15"><use href="#i-grip"/></svg>
+                    <span class="ord">07</span>
+                    <span class="tx"><b>ข่าวประชาสัมพันธ์</b><span>NEWS</span></span>
+                    <span class="mini">
+                      <button type="button" aria-label="ซ่อน"><svg width="12" height="12"><use href="#i-eye"/></svg></button>
+                      <button type="button" aria-label="ทำสำเนา"><svg width="12" height="12"><use href="#i-copy"/></svg></button>
+                      <button type="button" aria-label="ลบ"><svg width="12" height="12"><use href="#i-trash"/></svg></button>
+                    </span>
+                  </div>
+                  <button class="addsec" type="button"><svg width="14" height="14"><use href="#i-plus"/></svg> เพิ่ม Section</button>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div class="card">
+                  <div class="card-h"><h4>ตัวอย่างสด</h4><span class="dt mono">อัปเดตทันทีที่แก้ไข</span></div>
+                  <div class="prev">
+                    <div class="prev-row active">
+                      <span class="lbl">Hero</span>
+                      <div class="pv-hero">
+                        <b>สร้างทักษะดิจิทัล สร้างนวัตกรรม</b>
+                        <span>วิทยาลัยเทคนิคร้อยเอ็ด</span>
+                        <span class="bs"><i></i><i></i></span>
+                      </div>
+                    </div>
+                    <div class="prev-row">
+                      <span class="lbl">Statistics</span>
+                      <div class="pv-stats">
+                        <div><b>248</b><span>นักศึกษา</span></div><div><b>12</b><span>บุคลากร</span></div>
+                        <div><b>36</b><span>รายวิชา</span></div><div><b>64</b><span>ผลงาน</span></div>
+                      </div>
+                    </div>
+                    <div class="prev-row">
+                      <span class="lbl">About</span>
+                      <div class="pv-rows"><i style="width:44%"></i><i></i><i style="width:88%"></i><i style="width:66%"></i></div>
+                    </div>
+                    <div class="prev-row">
+                      <span class="lbl">Programs</span>
+                      <div class="pv-cards"><div></div><div></div><div></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-h"><h4>ตั้งค่า Section · ส่วนหัว (Hero)</h4><span class="pill p-pub"><i></i> แสดงอยู่</span></div>
+                  <div class="form-grid">
+                    <div>
+                      <label class="lab" for="f-badge">ข้อความป้าย</label>
+                      <input class="inp" id="f-badge" value="เปิดรับสมัคร ปวช. / ปวส. ปีการศึกษา 2570">
+                    </div>
+                    <div>
+                      <label class="lab" for="f-head">หัวข้อหลัก <em>*</em></label>
+                      <input class="inp inp-focus" id="f-head" value="สร้างทักษะดิจิทัล สร้างนวัตกรรม สร้างอนาคต">
+                      <div class="hint">46 / 120 ตัวอักษร</div>
+                    </div>
+                    <div class="two">
+                      <div>
+                        <label class="lab" for="f-cta1">ปุ่มหลัก</label>
+                        <input class="inp" id="f-cta1" value="ดูหลักสูตร → /programs">
+                      </div>
+                      <div>
+                        <label class="lab" for="f-cta2">ปุ่มรอง</label>
+                        <input class="inp" id="f-cta2" value="เกี่ยวกับแผนก → /about">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="lab" for="f-img">ภาพพื้นหลัง</label>
+                      <div class="field" id="f-img" style="justify-content:space-between">
+                        <span style="display:flex;align-items:center;gap:8px"><svg width="14" height="14"><use href="#i-img"/></svg> hero-lab-2569.webp · 1920×1080 · 284 KB</span>
+                        <span class="btn btn-ghost btn-sm" style="padding:4px 10px">เลือกจากคลังภาพ</span>
+                      </div>
+                    </div>
+                    <div class="switch"><span class="sw"></span> แสดงลายเส้นตารางและแสงเรืองพื้นหลัง</div>
+                    <div class="switch"><span class="sw off"></span> ปิดการเคลื่อนไหวของการ์ดลอย</div>
+                  </div>
+                  <div class="form-foot">
+                    <button class="btn btn-ghost btn-sm" type="button"><svg width="14" height="14"><use href="#i-hist"/></svg> ประวัติเวอร์ชัน (7)</button>
+                    <button class="btn btn-ghost btn-sm sp" type="button">ยกเลิก</button>
+                    <button class="btn btn-primary btn-sm" type="button">บันทึก Section</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <p class="note"><svg width="16" height="16" style="flex:none;margin-top:2px;color:var(--blue-500)"><use href="#i-grip"/></svg>
+      <span><b>ลากเพื่อสลับลำดับ แล้วกดบันทึก</b> — ระบบจะส่ง <span class="mono">PATCH /api/v1/admin/homepage/reorder</span>
+      พร้อมลำดับใหม่ทั้งชุดในทรานแซกชันเดียว หน้าแรกจึงเปลี่ยนลำดับได้โดยไม่ต้องแก้ Source Code แม้แต่บรรทัดเดียว</span></p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  /* theme toggle */
+  var root=document.documentElement, btn=document.getElementById('themeToggle'), lab=document.getElementById('themeLabel');
+  function prefDark(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  function sync(){
+    var dark = root.getAttribute('data-theme')==='dark' || (!root.hasAttribute('data-theme') && prefDark());
+    lab.textContent = dark ? 'โหมดสว่าง' : 'โหมดมืด';
+  }
+  btn.addEventListener('click',function(){
+    var dark = root.getAttribute('data-theme')==='dark' || (!root.hasAttribute('data-theme') && prefDark());
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    sync();
+  });
+  sync();
+
+  /* tabs */
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  function show(i){
+    tabs.forEach(function(t,j){
+      t.setAttribute('aria-selected', j===i ? 'true':'false');
+      document.getElementById(t.getAttribute('aria-controls')).hidden = (j!==i);
+    });
+    if(i===0) runCounters();
+  }
+  tabs.forEach(function(t,i){
+    t.addEventListener('click',function(){ show(i); });
+    t.addEventListener('keydown',function(e){
+      if(e.key==='ArrowRight'){ var n=(i+1)%tabs.length; tabs[n].focus(); show(n); }
+      if(e.key==='ArrowLeft'){ var p=(i-1+tabs.length)%tabs.length; tabs[p].focus(); show(p); }
+    });
+  });
+  show(0);
+
+  /* animated counters (respects reduced motion) */
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ran=false;
+  function runCounters(){
+    if(ran || reduced) return; ran=true;
+    [].forEach.call(document.querySelectorAll('[data-count]'),function(el){
+      var target=parseInt(el.getAttribute('data-count'),10), start=performance.now(), dur=1400;
+      function step(now){
+        var p=Math.min((now-start)/dur,1), e=1-Math.pow(1-p,3);
+        el.textContent=Math.round(target*e).toLocaleString('th-TH');
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+})();
+</script>

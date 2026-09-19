@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ══════════════════════════════════════════════════════════
+   DESIGN TOKEN — ประกาศเป็น RGB channel เพื่อให้ Tailwind
+   ใช้ <alpha-value> ได้ เช่น bg-surface/60
+   ══════════════════════════════════════════════════════════ */
+@layer base {
+  :root {
+    --c-canvas: 238 244 254;
+    --c-surface: 255 255 255;
+    --c-ink: 10 26 49;
+    --c-ink-muted: 66 85 122;
+    --c-ink-subtle: 119 137 168;
+    --c-border: 12 62 124;
+
+    --glass-alpha: 0.66;
+    --glass-blur: 18px;
+    --glow: 10 132 255;
+  }
+
+  [data-theme='dark'] {
+    --c-canvas: 4 10 22;
+    --c-surface: 12 23 40;
+    --c-ink: 233 241 255;
+    --c-ink-muted: 158 179 214;
+    --c-ink-subtle: 108 130 168;
+    --c-border: 125 180 255;
+
+    --glass-alpha: 0.58;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+    background-image:
+      radial-gradient(1100px 620px at 12% -8%, rgb(var(--glow) / 0.16), transparent 62%),
+      radial-gradient(900px 520px at 92% 4%, rgb(31 182 224 / 0.13), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+
+  /* โฟกัสต้องมองเห็นเสมอ — ข้อกำหนดด้าน accessibility */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2;
+    --tw-ring-offset-color: rgb(var(--c-canvas));
+  }
+
+  ::selection {
+    @apply bg-brand-500/20;
+  }
+
+  /* เคารพการตั้งค่าของผู้ใช้ที่ไม่ต้องการภาพเคลื่อนไหว */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* พื้นผิวกระจก — ใช้ซ้ำทุกที่ที่ต้องการ Glassmorphism */
+  .glass {
+    background-color: rgb(var(--c-surface) / var(--glass-alpha));
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+    @apply border border-hairline/[0.13] shadow-soft;
+  }
+
+  .glass-strong {
+    background-color: rgb(var(--c-surface) / 0.86);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    @apply border border-hairline/[0.13] shadow-card;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-400 via-cyan-500 to-brand-700 bg-clip-text text-transparent;
+  }
+
+  /* โครงร่างระหว่างโหลดข้อมูล */
+  .skeleton {
+    @apply relative overflow-hidden rounded bg-hairline/[0.10];
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--c-surface) / 0.55),
+      transparent
+    );
+  }
+
+  /* ลิงก์ข้ามไปเนื้อหาหลัก สำหรับผู้ใช้คีย์บอร์ดและ screen reader */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]
+           focus:rounded focus:bg-brand-500 focus:px-4 focus:py-2 focus:text-white;
+  }
+}

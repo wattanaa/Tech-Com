@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tcom-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tcom}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tcom_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-tcom_db}
+      TZ: Asia/Bangkok
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - tcom_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tcom} -d ${POSTGRES_DB:-tcom_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tcom_pgdata:
