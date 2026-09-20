@@ -1,57 +1,125 @@
-/**
- * SEED — ข้อมูลตั้งต้นของระบบ
- *
- *   npm run db:seed          ใส่ข้อมูลแกนระบบ + ข้อมูลตัวอย่าง
- *   npm run db:seed -- --core-only    ใส่เฉพาะข้อมูลแกนระบบ (ใช้ตอนขึ้นระบบจริง)
- *
- * ทั้งสคริปต์เป็น idempotent — รันซ้ำได้ ไม่สร้างข้อมูลซ้ำ ไม่ทับค่าที่แก้ไว้แล้ว
- * รหัสผ่านผู้ดูแลอ่านจาก .env เท่านั้น ไม่มีค่า default ในโค้ด
- */
-import 'dotenv/config';
-import { PrismaClient, RoleName } from '@prisma/client';
-import {
-  seedRolesAndPermissions,
-  seedAdminUser,
-  seedHomepageSections,
-  seedNavigation,
-  seedSiteSettings,
-  seedSeoSettings,
-} from './seeds/core.js';
-import { seedDemoData } from './seeds/demo.js';
+import { PrismaClient, RoleName, ProgramLevel, ContentStatus } from '@prisma/client';
+import argon2 from 'argon2';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
-const coreOnly = process.argv.includes('--core-only');
 
 async function main() {
-  console.log('\n═══ เริ่ม seed ข้อมูลตั้งต้น ═══\n');
+  const isCoreOnly = process.argv.includes('--core-only');
 
-  const roles = await seedRolesAndPermissions(prisma);
-  const superAdminRole = roles.get(RoleName.SUPER_ADMIN);
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@tcom.ac.th';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  const adminName = process.env.SEED_ADMIN_NAME || 'ผู้ดูแลระบบ';
 
-  const admin = superAdminRole ? await seedAdminUser(prisma, superAdminRole.id) : null;
-
-  await seedHomepageSections(prisma);
-  await seedNavigation(prisma);
-  await seedSiteSettings(prisma);
-  await seedSeoSettings(prisma);
-
-  if (coreOnly) {
-    console.log('\n▸ ข้ามข้อมูลตัวอย่าง (--core-only)');
-  } else if (!admin) {
-    console.warn(
-      '\n⚠ ข้ามข้อมูลตัวอย่าง — ต้องมีบัญชีผู้ดูแลก่อน เพราะข่าวทุกชิ้นต้องมีผู้เขียน',
-    );
-    console.warn('  ตั้ง SEED_ADMIN_EMAIL และ SEED_ADMIN_PASSWORD ใน .env แล้วรันใหม่อีกครั้ง');
-  } else {
-    await seedDemoData(prisma, admin.id);
+  if (!adminPassword) {
+    throw new Error('ไม่พบตัวแปร SEED_ADMIN_PASSWORD ในไฟล์ .env');
   }
 
-  console.log('\n═══ seed เสร็จสมบูรณ์ ═══\n');
+  console.log(' กำลังสร้าง Roles ของระบบ...');
+  const superAdminRole = await prisma.role.upsert({
+    where: { name: RoleName.SUPER_ADMIN },
+    update: {},
+    create: {
+      name: RoleName.SUPER_ADMIN,
+      label: 'ผู้ดูแลระบบสูงสุด',
+      level: 100,
+    },
+  });
+
+  await prisma.role.upsert({
+    where: { name: RoleName.ADMIN },
+    update: {},
+    create: {
+      name: RoleName.ADMIN,
+      label: 'ผู้ดูแลระบบ',
+      level: 50,
+    },
+  });
+
+  await prisma.role.upsert({
+    where: { name: RoleName.EDITOR },
+    update: {},
+    create: {
+      name: RoleName.EDITOR,
+      label: 'ผู้แก้ไขเนื้อหา',
+      level: 10,
+    },
+  });
+
+  console.log(' กำลังสร้างผู้ดูแลระบบสูงสุด (Super Admin)...');
+  const hashedPassword = await argon2.hash(adminPassword);
+  const adminUser = await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: {
+      email: adminEmail,
+      name: adminName,
+      passwordHash: hashedPassword,
+      roleId: superAdminRole.id,
+      isActive: true,
+    },
+  });
+
+  if (!isCoreOnly) {
+    console.log(' กำลังสร้างข้อมูลตัวอย่าง (Sample Data)...');
+
+    // 1. หลักสูตรตัวอย่าง
+    const program = await prisma.program.upsert({
+      where: { code: '30901' },
+      update: {},
+      create: {
+        code: '30901',
+        name: 'สาขาวิชาเทคโนโลยีคอมพิวเตอร์',
+        nameEn: 'Computer Technology',
+        level: ProgramLevel.POR_WOR_SOR,
+        duration: '2 ปี',
+        description: 'หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง สาขาวิชาเทคโนโลยีคอมพิวเตอร์',
+        skills: ['Software Development', 'Network Administration', 'Database Design'],
+      },
+    });
+
+    // 2. รายวิชาตัวอย่าง
+    await prisma.course.upsert({
+      where: { code: '30901-1001' },
+      update: {},
+      create: {
+        code: '30901-1001',
+        name: 'การเขียนโปรแกรมคอมพิวเตอร์',
+        credits: 3,
+        hours: 4,
+        theoryHours: 2,
+        practiceHours: 2,
+        description: 'พื้นฐานการเขียนโปรแกรมและขั้นตอนวิธี',
+        programId: program.id,
+      },
+    });
+
+    // 3. ข่าวประชาสัมพันธ์ตัวอย่าง
+    await prisma.news.upsert({
+      where: { slug: 'welcome-to-tcom' },
+      update: {},
+      create: {
+        title: 'ยินดีต้อนรับสู่ระบบสารสนเทศ แผนกวิชาเทคโนโลยีคอมพิวเตอร์',
+        slug: 'welcome-to-tcom',
+        excerpt: 'เปิดใช้งานเว็บไซต์สารสนเทศแผนกวิชาเทคโนโลยีคอมพิวเตอร์ วิทยาลัยเทคนิคร้อยเอ็ด',
+        content: '<p>ยินดีต้อนรับคณะครู บุคลากร และนักเรียน นักศึกษา ทุกท่าน</p>',
+        status: ContentStatus.PUBLISHED,
+        publishedAt: new Date(),
+        authorId: adminUser.id,
+      },
+    });
+  }
+
+  console.log(`\n Seed Data เสร็จสมบูรณ์ (${isCoreOnly ? 'Core Only' : 'พร้อมข้อมูลตัวอย่าง'})`);
 }
 
 main()
-  .catch((err) => {
-    console.error('\n❌ seed ล้มเหลว:', err instanceof Error ? err.message : err);
-    process.exitCode = 1;
+  .catch((e) => {
+    console.error('❌ เกิดข้อผิดพลาดขณะ Seed Data:', e);
+    process.exit(1);
   })
-  .finally(() => prisma.$disconnect());
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

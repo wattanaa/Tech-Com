@@ -98,6 +98,8 @@ export function createApp(): Express {
   );
 
   // ── Routes ────────────────────────────────────────────────
+  // sitemap.xml / robots.txt อยู่ระดับ root ไม่ใช่ใต้ /api/v1
+  app.use(seoRoutes);
   app.use('/api/v1', routes);
 
   // ── 404 + Global error handler (ต้องอยู่ท้ายสุดเสมอ) ──────

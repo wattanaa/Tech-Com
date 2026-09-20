@@ -1,17 +1,3 @@
-// ════════════════════════════════════════════════════════════════
-//  PRISMA SCHEMA — PHASE 2 (ครบทุกตาราง)
-//  ระบบเว็บไซต์สารสนเทศ แผนกวิชาเทคโนโลยีคอมพิวเตอร์ วิทยาลัยเทคนิคร้อยเอ็ด
-//
-//  กติกาที่ใช้ทั้ง schema:
-//   · ทุกตารางมี id / createdAt / updatedAt
-//   · ตารางเนื้อหามี createdById / updatedById / deletedAt (soft delete)
-//   · createdById / updatedById เก็บเป็น String ไม่ผูก relation
-//     เพื่อไม่ให้ User มี back-relation รกจนอ่านไม่ออก — ตรวจความถูกต้องที่ service
-//   · onDelete: Restrict  = มีของอ้างอยู่ ห้ามลบ
-//     onDelete: SetNull   = ลบได้ ตัวที่อ้างอยู่กลายเป็นค่าว่าง
-//     onDelete: Cascade   = ลบแม่แล้วลูกหายตาม (ใช้เฉพาะตารางเชื่อม)
-// ════════════════════════════════════════════════════════════════
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -37,7 +23,6 @@ enum ContentStatus {
   ARCHIVED
 }
 
-/// ปวช. = ประกาศนียบัตรวิชาชีพ · ปวส. = ประกาศนียบัตรวิชาชีพชั้นสูง
 enum ProgramLevel {
   POR_WOR_CHOR
   POR_WOR_SOR
@@ -116,7 +101,6 @@ model Role {
   name        RoleName         @unique
   label       String
   description String?
-  /// ยิ่งมากยิ่งมีสิทธิ์สูง: EDITOR=10 ADMIN=50 SUPER_ADMIN=100
   level       Int
   users       User[]
   permissions RolePermission[]
@@ -128,7 +112,6 @@ model Role {
 
 model Permission {
   id    String           @id @default(cuid())
-  /// รูปแบบ "<group>:<action>" เช่น "news:create"
   key   String           @unique
   group String
   label String
@@ -160,10 +143,11 @@ model User {
   lockedUntil      DateTime?
 
   roleId   String
-  role     Role    @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  role     Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
   avatarId String?
-  avatar   Media?  @relation("UserAvatar", fields: [avatarId], references: [id], onDelete: SetNull)
+  avatar   Media?    @relation("UserAvatar", fields: [avatarId], references: [id], onDelete: SetNull)
 
+  sessions       Session[]
   teacherProfile Teacher?
   authoredNews   News[]           @relation("NewsAuthor")
   uploads        Media[]          @relation("MediaUploader")
@@ -181,27 +165,35 @@ model User {
   @@map("users")
 }
 
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("sessions")
+}
+
 // ═════════════════════════════  MEDIA  ═════════════════════════════
 
 model Media {
-  id           String  @id @default(cuid())
-  /// ชื่อไฟล์บนดิสก์ (UUID) — ไม่ใช้ชื่อเดิมของผู้ใช้ เพื่อกัน path traversal
-  filename     String  @unique
+  id           String    @id @default(cuid())
+  filename     String    @unique
   originalName String
   mimeType     String
-  /// หน่วยเป็น byte
   size         Int
   width        Int?
   height       Int?
   url          String
   thumbnailUrl String?
   alt          String?
-  folder       String  @default("general")
+  folder       String    @default("general")
 
   uploadedById String?
-  uploadedBy   User?   @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  uploadedBy   User?     @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
 
-  // back-relation ของทุกตารางที่อ้างถึงรูป
   avatarOf       User[]         @relation("UserAvatar")
   teacherPhotos  Teacher[]      @relation("TeacherPhoto")
   studentPhotos  Student[]      @relation("StudentPhoto")
@@ -230,9 +222,7 @@ model Teacher {
   prefix       String
   firstName    String
   lastName     String
-  /// ตำแหน่งในแผนก เช่น "หัวหน้าแผนกวิชา"
   position     String
-  /// วิทยฐานะ เช่น "ครูชำนาญการพิเศษ"
   academicRank String?
   type         TeacherType @default(TEACHER)
   specialties  String[]
@@ -241,13 +231,11 @@ model Teacher {
   phone        String?
   facebook     String?
   line         String?
-  /// ลำดับการแสดงผลบนหน้าเว็บ
   order        Int         @default(0)
   isVisible    Boolean     @default(true)
 
   photoId String?
   photo   Media?  @relation("TeacherPhoto", fields: [photoId], references: [id], onDelete: SetNull)
-  /// ผูกกับบัญชีผู้ใช้ได้ถ้าครูท่านนั้นเป็นผู้ดูแลเว็บไซต์ด้วย
   userId  String? @unique
   user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -266,17 +254,15 @@ model Teacher {
 }
 
 model Student {
-  id          String  @id @default(cuid())
-  studentCode String  @unique
+  id          String   @id @default(cuid())
+  studentCode String   @unique
   prefix      String
   firstName   String
   lastName    String
-  /// ชั้นปี เช่น "ปวช.3" "ปวส.2"
   level       String
   classRoom   String?
-  /// ปีการศึกษาที่เข้าศึกษา (พ.ศ.)
   year        Int
-  isVisible   Boolean @default(true)
+  isVisible   Boolean  @default(true)
 
   programId String?
   program   Program? @relation(fields: [programId], references: [id], onDelete: SetNull)
@@ -301,12 +287,10 @@ model Student {
 
 model Program {
   id          String       @id @default(cuid())
-  /// รหัสหลักสูตรตามโครงสร้าง สอศ.
   code        String       @unique
   name        String
   nameEn      String?
   level       ProgramLevel
-  /// ระยะเวลาเรียน เช่น "3 ปี"
   duration    String
   description String
   skills      String[]
@@ -331,20 +315,17 @@ model Program {
 }
 
 model Course {
-  id            String  @id @default(cuid())
-  /// รหัสวิชาตามหลักสูตร สอศ. เช่น 30901-2003
-  code          String  @unique
+  id            String   @id @default(cuid())
+  code          String   @unique
   name          String
   nameEn        String?
   credits       Int
-  /// ชั่วโมงเรียนรวมต่อสัปดาห์
   hours         Int
-  theoryHours   Int     @default(0)
-  practiceHours Int     @default(0)
+  theoryHours   Int      @default(0)
+  practiceHours Int      @default(0)
   description   String
-  /// ภาคเรียนที่เปิดสอน เช่น "1/2569"
   term          String?
-  isVisible     Boolean @default(true)
+  isVisible     Boolean  @default(true)
 
   programId String
   program   Program @relation(fields: [programId], references: [id], onDelete: Restrict)
@@ -381,7 +362,6 @@ model Category {
   name  String
   slug  String
   type  CategoryType
-  /// สีประจำหมวดสำหรับแสดงป้ายบนหน้าเว็บ (hex)
   color String       @default("#007AFF")
   order Int          @default(0)
 
@@ -461,12 +441,10 @@ model Project {
   name         String
   slug         String        @unique
   description  String
-  /// ปีการศึกษาที่ทำโครงงาน (พ.ศ.)
   year         Int
   technologies String[]
   demoUrl      String?
   githubUrl    String?
-  /// รางวัลที่ได้รับ ถ้ามี
   award        String?
   status       ContentStatus @default(DRAFT)
 
@@ -494,7 +472,6 @@ model Project {
 model ProjectMember {
   projectId String
   studentId String
-  /// บทบาทในทีม เช่น "หัวหน้าทีม"
   role      String?
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -506,21 +483,19 @@ model ProjectMember {
 // ═══════════════════  ห้องปฏิบัติการ · คลังภาพ  ═══════════════════
 
 model Facility {
-  id            String  @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
-  slug          String  @unique
+  slug          String   @unique
   description   String
-  /// จำนวนเครื่องคอมพิวเตอร์ในห้อง
-  computerCount Int     @default(0)
+  computerCount Int      @default(0)
   software      String[]
   equipment     String[]
-  /// ที่ตั้งห้อง เช่น "อาคาร 4 ชั้น 2 ห้อง 421"
   location      String?
-  order         Int     @default(0)
-  isVisible     Boolean @default(true)
+  order         Int      @default(0)
+  isVisible     Boolean  @default(true)
 
   coverImageId String?
-  coverImage   Media?  @relation("FacilityCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  coverImage   Media?   @relation("FacilityCover", fields: [coverImageId], references: [id], onDelete: SetNull)
 
   createdById String?
   updatedById String?
@@ -543,7 +518,7 @@ model Album {
   order       Int       @default(0)
 
   coverImageId String?
-  coverImage   Media?  @relation("AlbumCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  coverImage   Media?   @relation("AlbumCover", fields: [coverImageId], references: [id], onDelete: SetNull)
 
   images GalleryImage[]
 
@@ -561,7 +536,6 @@ model Album {
 model GalleryImage {
   id      String  @id @default(cuid())
   caption String?
-  /// ลำดับภาพในอัลบั้ม — เปลี่ยนได้ด้วยการลากใน Admin
   order   Int     @default(0)
 
   albumId String
@@ -581,14 +555,11 @@ model GalleryImage {
 
 model HomepageSection {
   id        String      @id @default(cuid())
-  /// ชนิดซ้ำได้ เพื่อให้ทำสำเนา section แล้วตั้งค่าคนละแบบได้
-  /// เช่น แถวข่าว 2 แถว กรองคนละหมวด
   type      SectionType
   title     String?
   subtitle  String?
   order     Int
   isVisible Boolean     @default(true)
-  /// ค่าตั้งของแต่ละ section — validate ด้วย Zod discriminated union ตาม type ทุกครั้งที่บันทึก
   config    Json        @default("{}")
 
   createdById String?
@@ -624,7 +595,6 @@ model NavigationItem {
 
 model SiteSetting {
   id    String @id @default(cuid())
-  /// "general" | "contact" | "social" | "footer" | "about"
   key   String @unique
   group String @default("general")
   value Json
@@ -639,7 +609,6 @@ model SiteSetting {
 
 model SeoSetting {
   id          String   @id @default(cuid())
-  /// เส้นทางของหน้า เช่น "/" "/news"
   path        String   @unique
   title       String
   description String?
@@ -693,15 +662,13 @@ model Notification {
 }
 
 model AuditLog {
-  id       String      @id @default(cuid())
-  userId   String?
-  user     User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action   AuditAction
-  /// ชื่อ model ที่ถูกกระทำ เช่น "News"
-  entity   String
-  entityId String?
-  /// { before: {...}, after: {...} }
-  changes  Json?
+  id        String      @id @default(cuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    AuditAction
+  entity    String
+  entityId  String?
+  changes   Json?
   ipAddress String?
   userAgent String?
 
@@ -718,7 +685,6 @@ model ContentVersion {
   entity   String
   entityId String
   version  Int
-  /// ภาพรวมของข้อมูลทั้งก้อน ณ เวอร์ชันนั้น ใช้กู้คืนได้
   snapshot Json
   note     String?
 
@@ -733,16 +699,16 @@ model ContentVersion {
 }
 
 model Backup {
-  id       String       @id @default(cuid())
-  filename String
-  path     String
-  type     BackupType
-  status   BackupStatus @default(PENDING)
-  size     BigInt       @default(0)
-  note     String?
+  id          String       @id @default(cuid())
+  filename    String
+  path        String
+  type        BackupType
+  status      BackupStatus @default(PENDING)
+  size        BigInt       @default(0)
+  note        String?
 
   createdById String?
-  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy   User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
   createdAt   DateTime  @default(now())
   completedAt DateTime?

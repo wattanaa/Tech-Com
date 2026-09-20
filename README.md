@@ -79,28 +79,25 @@ git clone https://github.com/wattanaa/TCOM.git && cd TCOM
 ### ขั้นตอน
 
 ```bash
-# 1. ติดตั้ง dependency ทั้งหมด (backend + frontend)
-npm install
-
-# 2. สร้างไฟล์ตั้งค่าจากตัวอย่าง
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-
-# 3. สร้างค่า SESSION_SECRET แล้วนำไปใส่ใน backend/.env
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-
-# 4. ตั้ง SEED_ADMIN_PASSWORD ใน backend/.env (อย่างน้อย 12 ตัวอักษร)
-
-# 5. เปิดฐานข้อมูล
-npm run db:up
-
-# 6. สร้างตารางและใส่ข้อมูลตั้งต้น
-npm run db:migrate
-npm run db:seed
-
-# 7. เริ่มระบบ (API + เว็บ พร้อมกัน)
-npm run dev
+npm install     # ติดตั้ง dependency ทั้งหมด (backend + frontend)
+npm run dev     # เตรียมทุกอย่างให้เอง แล้วเริ่มระบบ
 ```
+
+`npm run dev` จะทำ 4 อย่างนี้ให้อัตโนมัติก่อนเริ่มเซิร์ฟเวอร์ และรันซ้ำได้เสมอโดยไม่ทำข้อมูลเดิมพัง
+
+1. สร้าง `backend/.env` และ `frontend/.env` จากไฟล์ตัวอย่าง ถ้ายังไม่มี
+2. สุ่ม `SESSION_SECRET` และรหัสผ่านผู้ดูแลเริ่มต้นให้ (แสดงบนหน้าจอครั้งแรกครั้งเดียว)
+3. เปิด PostgreSQL ผ่าน Docker แล้ว**รอจนฐานข้อมูลพร้อมจริง**
+4. สร้าง Prisma Client และ migrate ตารางให้เป็นปัจจุบัน
+
+อยากได้ข้อมูลตัวอย่างสำหรับทดลองใช้งานด้วย ให้สั่งครั้งเดียวก่อน
+
+```bash
+npm run setup:demo
+```
+
+> **ไม่มี Docker?** ติดตั้ง PostgreSQL 16 เองแล้วแก้ `DATABASE_URL` ใน `backend/.env`
+> ให้ตรงกับเครื่อง จากนั้นสั่ง `npm run setup -- --no-docker` ได้ตามปกติ
 
 | บริการ | ที่อยู่ |
 |---|---|
@@ -118,7 +115,10 @@ npm run dev
 
 | คำสั่ง | ทำอะไร |
 |---|---|
-| `npm run dev` | รัน API และเว็บพร้อมกัน |
+| `npm run dev` | เตรียมระบบให้พร้อม แล้วรัน API และเว็บพร้อมกัน |
+| `npm run setup` | เตรียม .env + ฐานข้อมูล + ตาราง + ข้อมูลแกนระบบ |
+| `npm run setup:demo` | เหมือน setup แต่ใส่ข้อมูลตัวอย่างให้ด้วย |
+| `npm run fresh` | ล้างฐานข้อมูลแล้วติดตั้งใหม่ทั้งหมดพร้อมข้อมูลตัวอย่าง |
 | `npm run dev:api` / `npm run dev:web` | รันแยกทีละฝั่ง |
 | `npm run build` | build ทั้งสองฝั่งสำหรับ production |
 | `npm run db:migrate` | สร้าง / ปรับโครงสร้างฐานข้อมูล |

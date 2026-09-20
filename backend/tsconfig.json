@@ -18,9 +18,8 @@
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,
     "declaration": false,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts"],

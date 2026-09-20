@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database.js';
 import { validate } from '../middleware/validate.middleware.js';
 import { authGuard } from '../middleware/auth.middleware.js';
@@ -74,7 +75,7 @@ adminRouter.put(
           title: body.title ?? before.title,
           subtitle: body.subtitle ?? before.subtitle,
           isVisible: body.isVisible ?? before.isVisible,
-          config: body.config ?? before.config ?? {},
+          config: (body.config ?? before.config ?? {}) as Prisma.InputJsonValue,
           updatedById: req.user!.id,
         },
       });
