@@ -48,11 +48,11 @@ services:
     name: tcom-web
     runtime: static
     rootDir: ./frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist        # แก้ตรงนี้: ตัด ./frontend ออก เพราะมี rootDir แล้ว
+    buildCommand: npm install --ignore-scripts && npm run build
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://tcom-api.onrender.com/api/v1  # หรือใส่ URL ชั่วคราวไปก่อน
+        value: https://tcom-api.onrender.com/api/v1
     routes:
       - type: rewrite
         source: /*
