@@ -14,7 +14,7 @@ services:
   - type: web
     name: tcom-api
     runtime: docker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
     region: singapore
