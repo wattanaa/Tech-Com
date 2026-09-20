@@ -5,7 +5,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/hooks/useTheme';
 import { get } from '@/api/client';
-import { fadeUp, stagger, transitions } from '@/animations/variants';
+import { fadeUp, stagger } from '@/animations/variants';
 
 interface HealthPayload {
   status: 'ok' | 'degraded';
@@ -14,13 +14,6 @@ interface HealthPayload {
   database: { connected: boolean; latencyMs: number };
   memoryMb: number;
 }
-
-/** ขั้นตอนถัดไปของโปรเจกต์ — แยก phase ออกจากคำอธิบายเพื่อไม่ให้เลขซ้ำกับป้ายหน้าแถว */
-const NEXT_STEPS = [
-  { phase: 2, title: 'เพิ่มตารางเนื้อหาทั้งหมดใน Prisma schema พร้อม migration และข้อมูลตัวอย่าง' },
-  { phase: 3, title: 'สร้าง REST API ครบทุก entity พร้อม search / filter / sort / pagination' },
-  { phase: 4, title: 'ระบบเข้าสู่ระบบ session และ RBAC ตรวจสิทธิ์ที่ backend ทุกเส้นทาง' },
-] as const;
 
 /**
  * หน้าตรวจสถานะระบบของ PHASE 1
@@ -130,22 +123,6 @@ export default function SetupPage() {
                 />
               </dl>
             )}
-          </GlassCard>
-        </motion.div>
-
-        <motion.div variants={fadeUp} transition={transitions.smooth}>
-          <GlassCard>
-            <h2 className="font-display text-sm font-semibold">ขั้นตอนถัดไป</h2>
-            <ol className="mt-3 flex flex-col gap-2.5 text-sm text-ink-muted">
-              {NEXT_STEPS.map(({ phase, title }) => (
-                <li key={phase} className="flex gap-3">
-                  <span className="mt-px grid size-5 shrink-0 place-items-center rounded-[6px] bg-brand-500/[0.12] font-mono text-[10px] font-medium text-brand-500">
-                    {phase}
-                  </span>
-                  <span className="min-w-0 leading-relaxed">{title}</span>
-                </li>
-              ))}
-            </ol>
           </GlassCard>
         </motion.div>
       </motion.div>
