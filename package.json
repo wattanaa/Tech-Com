@@ -23,7 +23,7 @@
     "db:studio": "npm run db:studio --workspace backend",
     "db:reset": "npm run db:reset --workspace backend",
     "fresh": "npm run db:down && docker compose up -d && node scripts/setup.mjs --demo",
-    "postinstall": "npm run db:generate --workspace backend",
+    "db:generate:all": "npm run db:generate --workspace backend",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
