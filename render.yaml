@@ -1,15 +1,5 @@
 # ════════════════════════════════════════════════════════════════
 #  Render.com Blueprint — deploy ขึ้นคลาวด์แบบกดปุ่มเดียว
-#
-#  วิธีใช้:
-#   1. push โค้ดขึ้น GitHub (ทำแล้ว)
-#   2. เข้า https://dashboard.render.com/blueprints → New Blueprint Instance
-#   3. เลือก repo wattanaa/TCOM แล้วกด Apply
-#   4. Render จะสร้างฐานข้อมูล + backend + frontend ให้อัตโนมัติ
-#      ค่า SESSION_SECRET สุ่มให้เอง เหลือแค่กรอก SEED_ADMIN_PASSWORD
-#
-#  หมายเหตุ: ไฟล์อัปโหลดบน backend แบบ free จะไม่ถาวร (ถูกล้างเมื่อ redeploy)
-#            หากต้องการเก็บถาวรให้เพิ่ม Disk ให้ service backend
 # ════════════════════════════════════════════════════════════════
 
 databases:
@@ -24,7 +14,7 @@ services:
   - type: web
     name: tcom-api
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: ./backend
     plan: free
     region: singapore
@@ -39,33 +29,30 @@ services:
           name: tcom-db
           property: connectionString
       - key: SESSION_SECRET
-        generateValue: true          # Render สุ่มค่าปลอดภัยให้อัตโนมัติ
+        generateValue: true
       - key: SESSION_NAME
         value: tcom.sid
       - key: SEED_MODE
-        value: demo                   # เปลี่ยนเป็น core เมื่อขึ้นใช้งานจริง
+        value: demo
       - key: SEED_ADMIN_EMAIL
         value: admin@tcom.rtc.ac.th
       - key: SEED_ADMIN_PASSWORD
-        sync: false                   # ต้องกรอกเองในหน้า dashboard (ไม่เก็บลง git)
+        generateValue: true          # ให้ Render สุ่มรหัสผ่านเริ่มต้นให้เลยเพื่อไม่ให้บล็อกการ deploy
       - key: SEED_ADMIN_NAME
         value: ผู้ดูแลระบบ
-      # หลัง deploy ครั้งแรก ให้นำ URL ของ tcom-web มาวางที่นี่ เช่น https://tcom-web.onrender.com
       - key: CORS_ORIGIN
-        sync: false
+        value: "*"                   # ตั้ง * ไว้ก่อนชั่วคราวเพื่อให้รันผ่าน แล้วค่อยมาแก้เป็น URL frontend ทีหลัง
 
   # ── Frontend (Static Site) ──
   - type: web
     name: tcom-web
     runtime: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./frontend/dist
     rootDir: ./frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist        # แก้ตรงนี้: ตัด ./frontend ออก เพราะมี rootDir แล้ว
     envVars:
-      # หลัง deploy ครั้งแรก ให้นำ URL ของ tcom-api มาวาง แล้วต่อท้ายด้วย /api/v1
-      # เช่น https://tcom-api.onrender.com/api/v1
       - key: VITE_API_BASE_URL
-        sync: false
+        value: https://tcom-api.onrender.com/api/v1  # หรือใส่ URL ชั่วคราวไปก่อน
     routes:
       - type: rewrite
         source: /*
