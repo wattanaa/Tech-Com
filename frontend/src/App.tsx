@@ -1,19 +1,53 @@
+import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import SetupPage from './pages/SetupPage';
+import { PublicLayout } from '@/layouts/PublicLayout';
+import { Spinner } from '@/components/ui/feedback';
 
 /**
- * PHASE 1 — มีเพียงหน้าตรวจสถานะระบบ เพื่อยืนยันว่า Frontend ต่อกับ API ได้จริง
- *
- * PHASE 9-10 จะแทนที่ด้วยโครงเส้นทางจริง:
- *   <Route element={<PublicLayout />}>      … 13 หน้าสาธารณะ
- *   <Route path="/admin" element={<AdminLayout />}>  … หน้าจัดการทั้งหมด
- * โดยทุกหน้าใน /admin ห่อด้วย <ProtectedRoute requiredPermission="...">
+ * เส้นทางของเว็บไซต์สาธารณะ (PHASE 9)
+ * แต่ละหน้าถูกแยก bundle ด้วย React.lazy เพื่อให้หน้าแรกโหลดเฉพาะที่จำเป็น
+ * ส่วนหลังบ้าน (/admin) จะเพิ่มใน PHASE 10
  */
+const HomePage = lazy(() => import('@/pages/public/HomePage'));
+const AboutPage = lazy(() => import('@/pages/public/AboutPage'));
+const ProgramsPage = lazy(() => import('@/pages/public/ProgramsPage'));
+const ProgramDetailPage = lazy(() => import('@/pages/public/ProgramDetailPage'));
+const CoursesPage = lazy(() => import('@/pages/public/CoursesPage'));
+const TeachersPage = lazy(() => import('@/pages/public/TeachersPage'));
+const ProjectsPage = lazy(() => import('@/pages/public/ProjectsPage'));
+const ProjectDetailPage = lazy(() => import('@/pages/public/ProjectDetailPage'));
+const ActivitiesPage = lazy(() => import('@/pages/public/ActivitiesPage'));
+const NewsPage = lazy(() => import('@/pages/public/NewsPage'));
+const NewsDetailPage = lazy(() => import('@/pages/public/NewsDetailPage'));
+const FacilitiesPage = lazy(() => import('@/pages/public/FacilitiesPage'));
+const GalleryPage = lazy(() => import('@/pages/public/GalleryPage'));
+const ContactPage = lazy(() => import('@/pages/public/ContactPage'));
+const SearchPage = lazy(() => import('@/pages/public/SearchPage'));
+const NotFoundPage = lazy(() => import('@/pages/public/NotFoundPage'));
+
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<SetupPage />} />
-      <Route path="*" element={<SetupPage />} />
-    </Routes>
+    <Suspense fallback={<div className="pt-24"><Spinner /></div>}>
+      <Routes>
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/programs" element={<ProgramsPage />} />
+          <Route path="/programs/:code" element={<ProgramDetailPage />} />
+          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/teachers" element={<TeachersPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+          <Route path="/activities" element={<ActivitiesPage />} />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/news/:slug" element={<NewsDetailPage />} />
+          <Route path="/facilities" element={<FacilitiesPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }

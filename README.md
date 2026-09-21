@@ -31,10 +31,23 @@ git clone https://github.com/wattanaa/TCOM.git && cd TCOM
 | 0 | เอกสารสถาปัตยกรรม ([docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)) | ✅ |
 | 1 | Project Setup · Design System · UI Preview | ✅ |
 | 2 | Database + Prisma Schema ครบทุกตาราง + Demo Data | ✅ |
-| 3 | Backend REST API | ⏳ |
-| 4 | Authentication + RBAC | ⏳ |
-| 5–18 | CRUD · Media · CMS · Homepage Builder · Public Site · Dashboard · Security | ⏳ |
+| 3 | Backend REST API | 🔄 |
+| 4 | Authentication + RBAC | 🔄 |
+| 5 | CRUD ทุก Entity | 🔄 |
+| 9 | **Public Website** — เว็บไซต์สาธารณะ 13 หน้า เชื่อม API จริง | ✅ |
+| 6–8, 10–18 | Media · CMS · Homepage Builder · Admin Dashboard · Security | ⏳ |
 | — | **Deployment** — Docker / Render / Manual ([docs/DEPLOY.md](docs/DEPLOY.md)) | ✅ |
+
+### เว็บไซต์สาธารณะ (PHASE 9)
+
+หน้าเว็บสำหรับนักเรียน ผู้ปกครอง และบุคคลทั่วไป — ดึงข้อมูลจาก REST API จริงทุกส่วน
+เนื้อหาแก้ไขได้จากระบบหลังบ้านโดยไม่ต้องแตะโค้ด
+
+- **หน้าแรก** ประกอบขึ้นจากตาราง `homepage_sections` ตามลำดับที่ตั้งในหลังบ้าน (Hero, สถิติ, เกี่ยวกับแผนก, หลักสูตร, รายวิชา, บุคลากร, ผลงาน, กิจกรรม, ข่าว, คลังภาพ, ห้องปฏิบัติการ, ติดต่อ)
+- **หน้ารายการ** ข่าว · รายวิชา · ผลงาน (ค้นหา + แบ่งหน้า) · บุคลากร (กรองตามประเภท) · หลักสูตร · กิจกรรม · ห้องปฏิบัติการ
+- **หน้ารายละเอียด** ข่าว · ผลงาน · หลักสูตร
+- **คลังภาพ** พร้อม Lightbox (ซูม/ถัดไป/ก่อนหน้า/คีย์บอร์ด) · **ค้นหาทั่วเว็บไซต์** (จัดกลุ่มตามประเภท) · **ฟอร์มติดต่อ**
+- Navbar กระจก sticky + เมนูมือถือ · Footer อ่านจากการตั้งค่า · Dark Mode · Animation ที่เคารพ `prefers-reduced-motion` · แยก bundle ทุกหน้าด้วย React.lazy
 
 ### ฐานข้อมูล (PHASE 2)
 
